@@ -18,6 +18,10 @@ USE `database_test`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Dumping events for database 'database_test'
+--
+
+--
 -- Dumping routines for database 'database_test'
 --
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -30,4 +34,4 @@ USE `database_test`;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-13 15:28:45
+-- Dump completed on 2020-06-14  0:29:39
