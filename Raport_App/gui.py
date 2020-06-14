@@ -130,16 +130,168 @@ class CalendarWindow(QWidget):
 
 if __name__ == "__main__":
 
-#    db = MySQLdb.connect("localhost", "root", "tYPSa5q74XhGDn5g", "database_test" )
-#    cursor = db.cursor()
-#    cursor.execute("SELECT VERSION()")
-#    data = cursor.fetchone()
-#    print(data)
-#    db.close()
+    db = MySQLdb.connect("localhost", "root", "tYPSa5q74XhGDn5g", "database_test" )
+    cursor = db.cursor()
 
-    app = QApplication([])
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
+    # Pobranie liczby pobytów w każdej strefie
+    sql0 = "SELECT bramki.strefy_id, strefy.nazwa, COUNT(*) FROM pobyty\
+    INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+    INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+    WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+    GROUP BY bramki.strefy_id\
+    ORDER BY bramki.strefy_id"
+
+    cursor.execute(sql0)
+    data = cursor.fetchall()
+    print(data)
+
+    # Podział wszystkich pobytów, grupowanie po pobytach z parkowaniem i bez
+    sql1 = "SELECT bramki.strefy_id, strefy.nazwa, pobyty.selektor, COUNT(*) FROM pobyty\
+        INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        GROUP BY bramki.strefy_id, pobyty.selektor\
+        ORDER BY bramki.strefy_id, pobyty.selektor"
+
+    cursor.execute(sql1)
+    data = cursor.fetchall()
+    print(data)
+
+    # Podział wszystkich pobytów grupowanie po strefie i typie pojazdu
+    sql2 = "SELECT bramki.strefy_id, strefy.nazwa, typy_pojazdów.id,  \
+        typy_pojazdów.nazwa, COUNT(*), SEC_TO_TIME(FLOOR(AVG(TIMESTAMPDIFF(SECOND, godzina_rozpoczecia, godzina_zakonczenia)))) \
+        FROM pobyty\
+        INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        INNER JOIN pojazdy ON pobyty.pojazdy_rejestracja = pojazdy.rejestracja\
+        INNER JOIN typy_pojazdów ON pojazdy.typy_pojazdów_id = typy_pojazdów.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        GROUP BY bramki.strefy_id, typy_pojazdów.id\
+        ORDER BY bramki.strefy_id, typy_pojazdów.id"\
+
+    # Wyliczenie średniego zużycia parkingów
+    sql3 = "SELECT bramki.strefy_id, strefy.nazwa, pojazdy.typy_pojazdów_id, typy_pojazdów.nazwa, COUNT(*),\
+        100 * SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, godzina_rozpoczecia, godzina_zakonczenia)))/(pojemności.miejsca * TIMESTAMPDIFF(SECOND, '2020-01-01 10:10:10', '2020-03-05 10:10:10'))\
+        FROM pobyty\
+        INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        INNER JOIN pojazdy ON pobyty.pojazdy_rejestracja = pojazdy.rejestracja\
+        INNER JOIN typy_pojazdów ON pojazdy.typy_pojazdów_id = typy_pojazdów.id\
+        INNER JOIN pojemności ON pojemności.typy_pojazdów_id = pojazdy.typy_pojazdów_id AND pojemności.strefy_id = bramki.strefy_id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        AND pobyty.selektor = 'z_parkowaniem'\
+        GROUP BY bramki.strefy_id, typy_pojazdów.id\
+        ORDER BY bramki.strefy_id, typy_pojazdów.id"
+
+
+    # Wyliczenie użycia bramek wjazdowych
+    sql4 = "SELECT bramki.strefy_id, strefy.nazwa, bramki.nazwa, bramki.selektor, COUNT(*) FROM pobyty\
+        INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        GROUP BY bramki.strefy_id, bramki.nazwa, bramki.selektor\
+        ORDER BY bramki.strefy_id, COUNT(*) DESC";
+
+
+    # Wyliczenie użycia bramek wyjazdowych
+    sql5 = "SELECT bramki.strefy_id, strefy.nazwa, bramki.nazwa, bramki.selektor, COUNT(*) FROM pobyty\
+        INNER JOIN bramki ON pobyty.wyjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        GROUP BY bramki.strefy_id, bramki.nazwa, bramki.selektor\
+        ORDER BY bramki.strefy_id, COUNT(*) DESC";
+
+
+    # Niepotrącony przychód
+    sql6 = "SELECT ROUND(SUM(należność),2), COUNT(*) FROM pobyty\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'"
+
+    # Niepotrącony przychód z podziałem na strefy i typy pojazdów
+    sql7 = "SELECT bramki.strefy_id, strefy.nazwa, pojazdy.typy_pojazdów_id, typy_pojazdów.nazwa, ROUND(SUM(należność),2) \
+        FROM pobyty\
+        INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        INNER JOIN pojazdy ON pobyty.pojazdy_rejestracja = pojazdy.rejestracja\
+        INNER JOIN typy_pojazdów ON pojazdy.typy_pojazdów_id = typy_pojazdów.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        GROUP BY bramki.strefy_id, pojazdy.typy_pojazdów_id\
+        ORDER BY bramki.strefy_id, pojazdy.typy_pojazdów_id"
+
+    # Potrącony przychód: brak konta
+    sql8a = "SELECT ROUND(SUM(należność),2), COUNT(*)\
+        FROM pobyty\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        AND pobyty.konta_id IS NULL;"
+
+    # Potrącony przychód: konto, brak ulgi
+    sql8b = "SELECT ROUND(SUM(należność),2), COUNT(*)\
+        FROM pobyty\
+        INNER JOIN konta ON pobyty.konta_id = konta.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        AND pobyty.konta_id IS NOT NULL\
+        AND konta.ulgi_id IS NULL;"
+
+    # Potrącony przychód: konto, ulga
+    sql8c = "SELECT ROUND(SUM(należność)*(1 - 0.01*ulgi.zniżka) ,2), COUNT(*)\
+        FROM pobyty\
+        INNER JOIN konta ON pobyty.konta_id = konta.id\
+        INNER JOIN ulgi on konta.ulgi_id = ulgi.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        AND pobyty.konta_id IS NOT NULL\
+        AND konta.ulgi_id IS NOT NULL;"
+
+    # j.w., tylko z podziałem na typy pojazdow i strefy
+    sql9a = "SELECT bramki.strefy_id, strefy.nazwa, pojazdy.typy_pojazdów_id, typy_pojazdów.nazwa," \
+        "ROUND(SUM(należność),2), COUNT(*), \
+        FROM pobyty\
+        INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        INNER JOIN pojazdy ON pobyty.pojazdy_rejestracja = pojazdy.rejestracja\
+        INNER JOIN typy_pojazdów ON pojazdy.typy_pojazdów_id = typy_pojazdów.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        AND pobyty.konta_id IS NULL\
+        GROUP BY bramki.strefy_id, pojazdy.typy_pojazdów_id\
+        ORDER BY bramki.strefy_id, pojazdy.typy_pojazdów_id;"
+
+    sql9b = "SELECT bramki.strefy_id, strefy.nazwa, pojazdy.typy_pojazdów_id, typy_pojazdów.nazwa," \
+        "ROUND(SUM(należność),2), COUNT(*), \
+        FROM pobyty\
+        INNER JOIN konta ON pobyty.konta_id = konta.id\
+        INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        INNER JOIN pojazdy ON pobyty.pojazdy_rejestracja = pojazdy.rejestracja\
+        INNER JOIN typy_pojazdów ON pojazdy.typy_pojazdów_id = typy_pojazdów.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        AND pobyty.konta_id IS NOT NULL\
+        AND konta.ulgi_id IS NULL\
+        GROUP BY bramki.strefy_id, pojazdy.typy_pojazdów_id\
+        ORDER BY bramki.strefy_id, pojazdy.typy_pojazdów_id;"
+
+    sql9c = "SELECT bramki.strefy_id, strefy.nazwa, pojazdy.typy_pojazdów_id, typy_pojazdów.nazwa, \
+        ROUND(SUM(należność)*(1 - 0.01*ulgi.zniżka) ,2), COUNT(*)\
+        FROM pobyty\
+        INNER JOIN konta ON pobyty.konta_id = konta.id\
+        INNER JOIN ulgi on konta.ulgi_id = ulgi.id\
+        INNER JOIN bramki ON pobyty.wjazdowe_bramki_id = bramki.id\
+        INNER JOIN strefy ON bramki.strefy_id = strefy.id\
+        INNER JOIN pojazdy ON pobyty.pojazdy_rejestracja = pojazdy.rejestracja\
+        INNER JOIN typy_pojazdów ON pojazdy.typy_pojazdów_id = typy_pojazdów.id\
+        WHERE godzina_zakonczenia BETWEEN '2020-01-01 10:10:10' AND '2020-03-05 10:10:10'\
+        AND pobyty.konta_id IS NOT NULL\
+        AND konta.ulgi_id IS NOT NULL\
+        GROUP BY bramki.strefy_id, pojazdy.typy_pojazdów_id\
+        ORDER BY bramki.strefy_id, pojazdy.typy_pojazdów_id;"
+
+
+    cursor.execute(sql3)
+    data = cursor.fetchall()
+    print(data)
+
+    db.close()
+
+#    app = QApplication([])
+#    window = MainWindow()
+#    window.show()
+#    sys.exit(app.exec_())
 
 
