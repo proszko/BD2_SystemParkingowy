@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `database_test` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `database_test`;
 -- MySQL dump 10.13  Distrib 8.0.20, for Win64 (x86_64)
 --
 -- Host: localhost    Database: database_test
@@ -29,7 +31,7 @@ CREATE TABLE `ulgi` (
   PRIMARY KEY (`id`),
   CONSTRAINT `ulgi_chk_1` CHECK ((`zniżka` >= 0)),
   CONSTRAINT `ulgi_chk_2` CHECK ((`zniżka` <= 100))
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +40,7 @@ CREATE TABLE `ulgi` (
 
 LOCK TABLES `ulgi` WRITE;
 /*!40000 ALTER TABLE `ulgi` DISABLE KEYS */;
-INSERT INTO `ulgi` VALUES (1,'student',12),(2,'pracujący',33),(3,'dużej rodziny',20),(4,'niepełnosprawny',10),(5,'służba publiczna',100);
+INSERT INTO `ulgi` VALUES (1,'student',12),(2,'pracujący',33),(3,'dużej rodziny',20),(4,'emeryt',27),(5,'niepełnosprawny',10),(6,'karta Polaka',15),(7,'służba publiczna',100);
 /*!40000 ALTER TABLE `ulgi` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -51,4 +53,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-06-12 14:30:57
+-- Dump completed on 2020-06-14  0:29:39
