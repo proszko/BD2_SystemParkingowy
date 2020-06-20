@@ -293,9 +293,12 @@ FOR EACH ROW BEGIN
         + (SELECT opłata_godzinowa from stawki WHERE strefy_id = (SELECT strefy_id FROM bramki WHERE bramki.id = OLD.wjazdowe_bramki_id) AND Typy_pojazdów_id = (SELECT typy_pojazdów_id FROM pojazdy WHERE pojazdy.rejestracja = OLD.pojazdy_rejestracja))
         * (TIMESTAMPDIFF(HOUR, NEW.godzina_rozpoczecia, NEW.godzina_zakonczenia)+1) , NULL) );
 	SET NEW.należność = ( IF (NEW.godzina_zakonczenia IS NOT NULL AND NEW.selektor="bez_parkowania" AND TIMEDIFF(NEW.godzina_zakonczenia, NEW.godzina_rozpoczecia) < '00:15:00', (SELECT opłata_wjazdowa from stawki WHERE strefy_id = (SELECT strefy_id FROM bramki WHERE bramki.id = OLD.wjazdowe_bramki_id) AND Typy_pojazdów_id = (SELECT typy_pojazdów_id FROM pojazdy WHERE pojazdy.rejestracja = OLD.pojazdy_rejestracja)), NEW.należność));
-
+	
+    SET NEW.należność = ( IF (NEW.konta_id IS NOT NULL AND (SELECT ulgi_id FROM konta WHERE konta.id = NEW.konta_id) IS NOT NULL ,
+    NEW.należność * (1 - 0.01 * (SELECT ulgi.zniżka FROM konta INNER JOIN ulgi ON konta.ulgi_id = ulgi.id WHERE konta.id = NEW.konta_id)), 
+    NEW.należność ));    
+    SET NEW.należność = ROUND(NEW.należność, 2);
 END$$
-
 
 
 
@@ -319,17 +322,17 @@ DELIMITER ;
 
 
 
-
-
 INSERT INTO typy_pojazdów (nazwa) VALUES 
-("osobowy"), 
-("ciężarowy"), 
 ("autobus"), 
-("taksówka"),
+("ciężarowy"), 
 ("jednoślad"),
-("osobowy z przyczepą"),
+("maszyna rolnicza"),
 ("naczepa ciężarowa"),
-("maszyna rolnicza");
+("osobowy"), 
+("osobowy z przyczepą"),
+("taksówka");
+
+
 
 
 INSERT INTO ulgi (nazwa, zniżka) VALUES 
