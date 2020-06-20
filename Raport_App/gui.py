@@ -5,6 +5,10 @@ import MySQLdb
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+import xlsxwriter
+import xlwt
+from builtins import str
+
 
 
 class MainWindow(QWidget):
@@ -36,8 +40,8 @@ class MainWindow(QWidget):
         self.cal2.reset_signal.connect(self.dateEdit2.setDate)
 
 
-        self.checkbox = QCheckBox("przychody")
-        self.checkbox2 = QCheckBox("użycie")
+        self.checkbox = QCheckBox("użycie")
+        self.checkbox2 = QCheckBox("przychody")
         self.checkbox3 = QCheckBox("użytkownicy")
 
         generateButton = QPushButton("Wygeneruj raport")
@@ -45,6 +49,7 @@ class MainWindow(QWidget):
         label1 = QLabel("Data rozpoczęcia")
         label2 = QLabel("Data zakończenia")
         label3 = QLabel("Strefa:")
+
 
 
         hbox = QGridLayout()
@@ -96,18 +101,33 @@ class MainWindow(QWidget):
             self.alert_widget.setText("Nieprawidłowy zakres dat")
             self.alert_widget.show()
             return
+
+        sheet_names=[]
+        tables=[]
+        filename="raport_"
         if (self.checkbox.isChecked()):
             self.generateUsageRaport()
+            filename = "Raport_użycie_"  + self.comboBox.currentText()+ "_" + str(
+                self.dateEdit.dateTime().toString('yyyy-MM-dd')) + "__" + str(self.dateEdit2.dateTime().toString('yyyy-MM-dd')) + ".xlsx"
+            saveRaportToFile(filename, "raport", self.raport_usage)
+
         if (self.checkbox2.isChecked()):
             self.generateProfitRaport()
+            filename = "Raport_przychody_"  + self.comboBox.currentText()+ "_" + str(
+                self.dateEdit.dateTime().toString('yyyy-MM-dd')) + "__" + str(self.dateEdit2.dateTime().toString('yyyy-MM-dd')) + ".xlsx"
+            saveRaportToFile(filename, "raport", self.raport_profit)
         if (self.checkbox3.isChecked()):
             self.generateUserRaport()
+            filename = "Raport_użytkownicy_" + self.comboBox.currentText() + "_" + str(
+                self.dateEdit.dateTime().toString('yyyy-MM-dd')) + "__" + str(self.dateEdit2.dateTime().toString('yyyy-MM-dd')) + ".xlsx"
+            saveRaportToFile(filename, "raport", self.raport_user)
 
     def generateUsageRaport(self):
 
         
 
         self.raport_usage = QTableWidget()
+        self.raport_usage.setWindowTitle("Raport użycia")
         self.raport_usage.setRowCount(30)
         self.raport_usage.setColumnCount(7)
 
@@ -203,15 +223,19 @@ class MainWindow(QWidget):
             i_ref2+=1
 
         self.raport_usage.setGeometry(50,50,700,800)
-        self.raport_usage.show()
 
-        
+        self.raport_usage.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.raport_usage.resizeColumnsToContents()
+
+        self.raport_usage.show()
+        return self.raport_usage
+
 
     def generateProfitRaport(self):
         self.raport_profit = QTableWidget()
         self.raport_profit.setRowCount(30)
         self.raport_profit.setColumnCount(7)
-
+        self.raport_usage.setWindowTitle("Raport przychodów")
 
         strefa = self.comboBox.currentText()
         startDate = self.dateEdit.dateTime()
@@ -228,7 +252,6 @@ class MainWindow(QWidget):
 
 
         self.raport_profit.setItem(2, 1, QTableWidgetItem("Przychód"))
-        self.raport_profit.setItem(2, 2, QTableWidgetItem("Przychód z ulgami"))
 
         self.raport_profit.setItem(3, 0, QTableWidgetItem("Ogólny:"))
         self.raport_profit.setItem(4, 0, QTableWidgetItem("Ta strefa:"))
@@ -245,10 +268,6 @@ class MainWindow(QWidget):
             self.raport_profit.setItem(3, 1, QTableWidgetItem('0'))
 
 
-        data = round(getReducedProfit(startDate, endDate),2)
-        reducedProfit = data
-        self.raport_profit.setItem(3, 2, QTableWidgetItem(str(data)))
-
 
         pojazdy_list = getAllTypyPojazdow()
 
@@ -256,14 +275,14 @@ class MainWindow(QWidget):
 
         self.raport_profit.setItem(7, 0, QTableWidgetItem("Typ pojazdu"))
         self.raport_profit.setItem(7, 1, QTableWidgetItem("Przychód"))
-        self.raport_profit.setItem(7, 2, QTableWidgetItem("Przychód z ulgami"))
+
 
 
         i = 8
         for pojazd in pojazdy_list:
             self.raport_profit.setItem(i, 0, QTableWidgetItem(pojazd[0]))
             self.raport_profit.setItem(i, 1, QTableWidgetItem('0'))
-            self.raport_profit.setItem(i, 2, QTableWidgetItem('0'))
+
 
             i += 1
 
@@ -280,26 +299,17 @@ class MainWindow(QWidget):
             self.raport_profit.setItem(5, 1, QTableWidgetItem('0'))
 
 
-        data = getReducedProfitByStrefaAndTypPojazdu(startDate, endDate, strefa)
-        print(data)
-        sum = 0
-        for i in range(len(data)):
-            data[i] = round (data[i], 2)
-            sum+=data[i]
-            self.raport_profit.setItem(8 + i, 2, QTableWidgetItem(str(data[i])))
 
-
-        sum = round(sum, 2)
-        self.raport_profit.setItem(4, 2, QTableWidgetItem(str(sum)))
-        if sum != 0:
-            self.raport_profit.setItem(5, 2, QTableWidgetItem(str(round(100 * sum / reducedProfit, 2))))
-        else:
-            self.raport_profit.setItem(5, 2, QTableWidgetItem('0'))
 
 
 
         self.raport_profit.setGeometry(50,50,600,800)
+
+        self.raport_profit.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.raport_profit.resizeColumnsToContents()
         self.raport_profit.show()
+
+        return self.raport_profit
         
     def generateUserRaport(self):
 
@@ -307,6 +317,7 @@ class MainWindow(QWidget):
         self.raport_user = QTableWidget()
         self.raport_user.setRowCount(30)
         self.raport_user.setColumnCount(7)
+        self.raport_usage.setWindowTitle("Raport użytkowników")
 
         startDate = self.dateEdit.dateTime()
         endDate = self.dateEdit2.dateTime()
@@ -327,7 +338,6 @@ class MainWindow(QWidget):
         i = 3
 
         data = getUserStats(startDate, endDate)
-        print(data)
         self.raport_user.setRowCount(len(data)+3)
         for user in data:
             self.raport_user.setItem(i, 0, QTableWidgetItem(str(user[0])))
@@ -338,7 +348,13 @@ class MainWindow(QWidget):
             i+=1
 
         self.raport_user.setGeometry(50,50,600,800)
+
+        self.raport_user.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
+        self.raport_user.resizeColumnsToContents()
+
         self.raport_user.show()
+
+        return self.raport_user
 
 
 class CalendarWindow(QWidget):
@@ -688,7 +704,6 @@ def getReducedProfitByStrefaAndTypPojazdu(startTime, endTime, strefa):
     cursor.execute(sql3, [startTime, endTime, strefa])
     data3 = cursor.fetchall()
 
-    print(data1)
     strefy = getAllTypyPojazdow()
     new_dict = []
 
@@ -713,12 +728,12 @@ def getUserStats(startTime, endTime):
 
     # Raport o użytkownikach
     sql = "SELECT pobyty.konta_id, konta.imię, konta.nazwisko,  \
-            ROUND(SUM(należność) * (1 - 0.01* ulgi.zniżka),2), COUNT(*) from pobyty \
+            ROUND(SUM(należność), 2), COUNT(*) from pobyty \
             INNER JOIN konta ON pobyty.konta_id = konta.id \
             INNER JOIN ulgi ON konta.ulgi_id = ulgi.id \
             WHERE pobyty.godzina_zakonczenia BETWEEN %s AND %s\
             GROUP BY pobyty.konta_id \
-            ORDER BY pobyty.konta_id"
+            ORDER BY SUM(należność) DESC"
 
     cursor.execute(sql, [startTime, endTime])
     data = cursor.fetchall()
@@ -727,9 +742,29 @@ def getUserStats(startTime, endTime):
 
 
 
+
+
+
+
+def saveRaportToFile(filename, sheet_name, table):
+    wbk = xlwt.Workbook()
+
+
+    worksheet = wbk.add_sheet(sheet_name)
+    for currentColumn in range(table.columnCount()):
+        for currentRow in range(table.rowCount()):
+            try:
+                teext = str(table.item(currentRow, currentColumn).text())
+                worksheet.write(currentRow, currentColumn, teext)
+            except AttributeError:
+                pass
+
+    wbk.save(filename)
+
 if __name__ == "__main__":
 
     app = QApplication([])
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
