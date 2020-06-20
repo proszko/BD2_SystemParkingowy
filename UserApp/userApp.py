@@ -48,10 +48,9 @@ class MainWindow(tk.Frame):
         app.draw_contents()
 
     def type_management(self):
-        # newWindow = tk.Toplevel(self.master)
-        # app = TypeWindow(newWindow)
-        # app.draw_contents()
-        pass
+        newWindow = tk.Toplevel(self.master)
+        app = TypeWindow(newWindow)
+        app.draw_contents()
 
     def parking_management(self):
         # newWindow = tk.Toplevel(self.master)
@@ -281,8 +280,145 @@ class DiscountAddWindow(tk.Frame):
 
 
 class TypeWindow(tk.Frame):
-    def __init__(self):
-        pass
+    def __init__(self, master=None):
+        tk.Frame.__init__(self, master)
+        self.master = master
+        self.master.title("Zarządzanie typami pojazdów")
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.master.geometry("270x510")
+        self.grid()
+        self.master.resizable(False, False)
+
+    def draw_contents(self):
+        canvas = tk.Canvas(self, width=250, height=500)
+        canvas.rowconfigure(0, weight=1)
+        canvas.columnconfigure(0, weight=1)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        canvasFrame = tk.Frame(canvas)
+        canvas.create_window(0, 0, window=canvasFrame, anchor='nw')
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT nazwa FROM typy_pojazdów ORDER BY id;"
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            field_names = [i[0] for i in cursor.description]
+            j = 0
+            length = len(field_names)
+            for j in range(length):
+                label1 = tk.Label(canvasFrame, text=field_names[j], font="bold", bg="light grey")
+                label1.grid(row=0, column=j, sticky="ew", padx=1, pady=1)
+            button1 = tk.Button(canvasFrame, bg="tomato", text="Dodaj ulgę")
+            button1.grid(row=0, column=j + 1, sticky="ew", padx=1, pady=1)
+            button1.configure(command=lambda fields=field_names: self.add_type(fields))
+            for idxr, row in enumerate(result):
+                idxc = 0
+                for idxc, column in enumerate(row):
+                    label1 = tk.Label(canvasFrame, text=column)
+                    label1.grid(row=idxr + 1, column=idxc, padx=1, pady=1)
+                button1 = tk.Button(canvasFrame, bg="light blue", text="Edytuj ulgę")
+                button1.grid(row=idxr + 1, column=idxc + 1, sticky="ew", padx=1, pady=1)
+                button1.configure(
+                    command=lambda nazwa=result[idxr][0], fields=field_names: self.edit_type(nazwa, fields))
+        except:
+            print("Error: Unable to fetch data")
+        db.close()
+        scroll = tk.Scrollbar(self, orient=tk.VERTICAL)
+        scroll.config(command=canvas.yview)
+        canvas.config(yscrollcommand=scroll.set)
+        scroll.grid(row=0, column=1, sticky="ns")
+        self.update()
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    def edit_type(self, nazwa, field_names):
+        sql1 = "SELECT nazwa FROM typy_pojazdów WHERE nazwa = %s;"
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        cursor.execute(sql1, nazwa)
+        result = cursor.fetchone()
+        newWindow = tk.Toplevel(self.master)
+        app = TypeAddWindow(result, newWindow, self)
+        app.draw_contents(field_names)
+
+    def add_type(self, field_names):
+        typdat = None
+        newWindow = tk.Toplevel(self.master)
+        app = TypeAddWindow(typdat, newWindow, self)
+        app.draw_contents(field_names)
+
+
+class TypeAddWindow(tk.Frame):
+    def __init__(self, typdat, master=None, parent=None):
+        tk.Frame.__init__(self, master)
+        self.parent = parent
+        self.master = master
+        self.master.title("Wprowadź dane typu pojazdu")
+        self.button1 = tk.Button(self)
+        self.button2 = tk.Button(self)
+        self.entry1 = tk.Entry(self)
+        if typdat is not None:
+            self.entry1.insert(0, typdat)
+        self.entry1.configure(validate="key",
+                              validatecommand=(self.register(self.on_validate_nazwa), "%d", "%i"))
+        self.grid()
+        self.master.resizable(False, False)
+
+    def on_validate_nazwa(self, why, where):
+        if why == '1':
+            if int(where) >= 30:
+                return False
+        return True
+
+    def draw_contents(self, field_names):
+        length = len(field_names)
+        j = 0
+        for j in range(length):
+            label1 = tk.Label(self, text=field_names[j])
+            label1.grid(row=j, column=0, sticky="ew", padx=1, pady=1)
+        label1 = tk.Label(self)
+        label1.grid(row=j + 1, column=0, padx=1, pady=1)
+        label1.grid(row=j + 1, column=1, padx=1, pady=1)
+        self.button1 = tk.Button(self, bg="green", text="OK",
+                                 command=lambda naz=self.entry1.get(): self.confirm_button_fun(naz))
+        self.button1.grid(row=j + 2, column=0, sticky="ew", padx=1, pady=1)
+        self.button2 = tk.Button(self, bg="tomato", text="Anuluj", command=self.master.destroy)
+        self.button2.grid(row=j + 2, column=1, padx=1, pady=1)
+        self.entry1.grid(row=0, column=1, sticky="ew", padx=1, pady=1)
+
+    def confirm_button_fun(self, naz0):
+        if self.entry1.get() == "":
+            tk.messagebox.showerror("Error", "Pole nazwa musi być wypełnione")
+            return
+        if len(self.entry1.get()) > 30:
+            tk.messagebox.showerror("Error", "Nazwa typu pojazdu jest za długa")
+            return
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        cursor.execute("SELECT nazwa FROM typy_pojazdów WHERE nazwa = %s;", self.entry1.get())
+        naz = cursor.rowcount
+        nazval = cursor.fetchone()
+        if naz != 0:
+            if nazval[0] != naz0:
+                tk.messagebox.showerror("Error", "Istnieje już typ pojazdu o podanej nazwie")
+                db.close()
+                return
+        sql1 = "INSERT INTO typy_pojazdów (nazwa) VALUES (%s);"
+        sql2 = "UPDATE typy_pojazdów SET nazwa = %s WHERE nazwa = %s;"
+        s1 = self.entry1.get()
+        record = s1
+        update = (s1, naz0)
+        try:
+            if naz0 == "":
+                cursor.execute(sql1, record)
+            else:
+                cursor.execute(sql2, update)
+        except:
+            print("Error: Unable to insert data")
+        db.commit()
+        db.close()
+        self.parent.draw_contents()
+        self.master.destroy()
 
 
 class ParkingWindow(tk.Frame):
