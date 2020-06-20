@@ -1,4 +1,5 @@
 import pymysql
+
 pymysql.install_as_MySQLdb()
 import MySQLdb
 import tkinter as tk
@@ -26,8 +27,55 @@ class MainWindow(tk.Frame):
         self.label2.pack(fill=tk.BOTH)
         self.button5 = tk.Button(self, text="Zarządzanie kontami klienckimi", command=self.account_management)
         self.button5.pack(fill=tk.BOTH)
+        self.button6 = tk.Button(self, text="Zarządzanie ulgami", command=self.discount_management)
+        self.button6.pack(fill=tk.BOTH)
+        self.button7 = tk.Button(self, text="Zarządzanie typami pojazdów", command=self.type_management)
+        self.button7.pack(fill=tk.BOTH)
+        self.button8 = tk.Button(self, text="Zarządzanie miejscami parkingowymi", command=self.parking_management)
+        self.button8.pack(fill=tk.BOTH)
+        self.button9 = tk.Button(self, text="Zarządzanie stawkami", command=self.rate_management)
+        self.button9.pack(fill=tk.BOTH)
+        self.button10 = tk.Button(self, text="Zarządzanie bramkami", command=self.gate_management)
+        self.button10.pack(fill=tk.BOTH)
+        self.button11 = tk.Button(self, text="Zarządzanie strefami", command=self.zone_management)
+        self.button11.pack(fill=tk.BOTH)
         self.pack()
         self.master.resizable(False, False)
+
+    def discount_management(self):
+        newWindow = tk.Toplevel(self.master)
+        app = DiscountWindow(newWindow)
+        app.draw_contents()
+
+    def type_management(self):
+        # newWindow = tk.Toplevel(self.master)
+        # app = TypeWindow(newWindow)
+        # app.draw_contents()
+        pass
+
+    def parking_management(self):
+        # newWindow = tk.Toplevel(self.master)
+        # app = ParkingWindow(newWindow)
+        # app.draw_contents()
+        pass
+
+    def rate_management(self):
+        # newWindow = tk.Toplevel(self.master)
+        # app = RateWindow(newWindow)
+        # app.draw_contents()
+        pass
+
+    def gate_management(self):
+        # newWindow = tk.Toplevel(self.master)
+        # app = GateWindow(newWindow)
+        # app.draw_contents()
+        pass
+
+    def zone_management(self):
+        # newWindow = tk.Toplevel(self.master)
+        # app = ZoneWindow(newWindow)
+        # app.draw_contents()
+        pass
 
     def park_zone_status(self):
         newWindow = tk.Toplevel(self.master)
@@ -72,12 +120,197 @@ class MainWindow(tk.Frame):
         tk.messagebox.showinfo("Information", "Wygenerowano listę zaległości - plik lista.txt")
 
 
+class DiscountWindow(tk.Frame):
+    def __init__(self, master=None):
+        tk.Frame.__init__(self, master)
+        self.master = master
+        self.master.title("Zarządzanie ulgami")
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.master.geometry("320x510")
+        self.grid()
+        self.master.resizable(False, False)
+
+    def draw_contents(self):
+        canvas = tk.Canvas(self, width=300, height=500)
+        canvas.rowconfigure(0, weight=1)
+        canvas.columnconfigure(0, weight=1)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        canvasFrame = tk.Frame(canvas)
+        canvas.create_window(0, 0, window=canvasFrame, anchor='nw')
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT nazwa, zniżka FROM ulgi ORDER BY id;"
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            field_names = [i[0] for i in cursor.description]
+            j = 0
+            length = len(field_names)
+            for j in range(length):
+                label1 = tk.Label(canvasFrame, text=field_names[j], font="bold", bg="light grey")
+                label1.grid(row=0, column=j, sticky="ew", padx=1, pady=1)
+            button1 = tk.Button(canvasFrame, bg="tomato", text="Dodaj ulgę")
+            button1.grid(row=0, column=j + 1, sticky="ew", padx=1, pady=1)
+            button1.configure(command=lambda fields=field_names: self.add_discount(fields))
+            for idxr, row in enumerate(result):
+                idxc = 0
+                for idxc, column in enumerate(row):
+                    label1 = tk.Label(canvasFrame, text=column)
+                    label1.grid(row=idxr + 1, column=idxc, padx=1, pady=1)
+                button1 = tk.Button(canvasFrame, bg="light blue", text="Edytuj ulgę")
+                button1.grid(row=idxr + 1, column=idxc + 1, sticky="ew", padx=1, pady=1)
+                button1.configure(
+                    command=lambda nazwa=result[idxr][0], fields=field_names: self.edit_discount(nazwa, fields))
+        except:
+            print("Error: Unable to fetch data")
+        db.close()
+        scroll = tk.Scrollbar(self, orient=tk.VERTICAL)
+        scroll.config(command=canvas.yview)
+        canvas.config(yscrollcommand=scroll.set)
+        scroll.grid(row=0, column=1, sticky="ns")
+        self.update()
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    def edit_discount(self, nazwa, field_names):
+        sql1 = "SELECT nazwa, zniżka FROM ulgi WHERE nazwa = %s;"
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        cursor.execute(sql1, nazwa)
+        result = cursor.fetchone()
+        newWindow = tk.Toplevel(self.master)
+        app = DiscountAddWindow(result, newWindow, self)
+        app.draw_contents(field_names)
+
+    def add_discount(self, field_names):
+        discdat = (None, None)
+        newWindow = tk.Toplevel(self.master)
+        app = DiscountAddWindow(discdat, newWindow, self)
+        app.draw_contents(field_names)
+
+
+class DiscountAddWindow(tk.Frame):
+    def __init__(self, discdat, master=None, parent=None):
+        tk.Frame.__init__(self, master)
+        self.parent = parent
+        self.master = master
+        self.master.title("Wprowadź dane ulgi")
+        self.button1 = tk.Button(self)
+        self.button2 = tk.Button(self)
+        self.entry1 = tk.Entry(self)
+        if discdat[0] is not None:
+            self.entry1.insert(0, discdat[0])
+        self.entry1.configure(validate="key",
+                              validatecommand=(self.register(self.on_validate_nazwa), "%d", "%i"))
+        self.entry2 = tk.Entry(self)
+        if discdat[1] is not None:
+            self.entry2.insert(0, discdat[1])
+        self.entry2.configure(validate="key",
+                              validatecommand=(self.register(self.on_validate_znizka), "%d", "%P"))
+        self.grid()
+        self.master.resizable(False, False)
+
+    def on_validate_nazwa(self, why, where):
+        if why == '1':
+            if int(where) >= 30:
+                return False
+        return True
+
+    def on_validate_znizka(self, why, what):
+        if why == '1':
+            try:
+                float(what)
+            except ValueError:
+                return False
+        return True
+
+    def draw_contents(self, field_names):
+        length = len(field_names)
+        j = 0
+        for j in range(length):
+            label1 = tk.Label(self, text=field_names[j])
+            label1.grid(row=j, column=0, sticky="ew", padx=1, pady=1)
+        label1 = tk.Label(self)
+        label1.grid(row=j + 1, column=0, padx=1, pady=1)
+        label1.grid(row=j + 1, column=1, padx=1, pady=1)
+        self.button1 = tk.Button(self, bg="green", text="OK",
+                                 command=lambda naz=self.entry1.get(): self.confirm_button_fun(naz))
+        self.button1.grid(row=j + 2, column=0, sticky="ew", padx=1, pady=1)
+        self.button2 = tk.Button(self, bg="tomato", text="Anuluj", command=self.master.destroy)
+        self.button2.grid(row=j + 2, column=1, padx=1, pady=1)
+        self.entry1.grid(row=0, column=1, sticky="ew", padx=1, pady=1)
+        self.entry2.grid(row=1, column=1, sticky="ew", padx=1, pady=1)
+
+    def confirm_button_fun(self, naz0):
+        if self.entry1.get() == "" or self.entry2.get() == "":
+            tk.messagebox.showerror("Error", "Pola nazwa, zniżka muszą być wypełnione")
+            return
+        if len(self.entry1.get()) > 30:
+            tk.messagebox.showerror("Error", "Nazwa ulgi jest za długa")
+            return
+        if float(self.entry2.get()) >= float(100.0) or float(self.entry2.get()) <= float(0.0):
+            tk.messagebox.showerror("Error", "Niepoprawna wartość zniżki (zakres 0 - 100)")
+            return
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        cursor.execute("SELECT nazwa FROM ulgi WHERE nazwa = %s;", self.entry1.get())
+        naz = cursor.rowcount
+        nazval = cursor.fetchone()
+        if naz != 0:
+            if nazval[0] != naz0:
+                tk.messagebox.showerror("Error", "Istnieje już ulga o podanej nazwie")
+                db.close()
+                return
+        sql1 = "INSERT INTO ulgi (nazwa, zniżka) VALUES (%s, %s);"
+        sql2 = "UPDATE ulgi SET nazwa = %s, zniżka = %s WHERE nazwa = %s;"
+        s1 = self.entry1.get()
+        f1 = float(self.entry2.get())
+        record = (s1, f1)
+        update = (s1, f1, naz0)
+        try:
+            if naz0 == "":
+                cursor.execute(sql1, record)
+            else:
+                cursor.execute(sql2, update)
+        except:
+            print("Error: Unable to insert data")
+        db.commit()
+        db.close()
+        self.parent.draw_contents()
+        self.master.destroy()
+
+
+class TypeWindow(tk.Frame):
+    def __init__(self):
+        pass
+
+
+class ParkingWindow(tk.Frame):
+    def __init__(self):
+        pass
+
+
+class RateWindow(tk.Frame):
+    def __init__(self):
+        pass
+
+
+class GateWindow(tk.Frame):
+    def __init__(self):
+        pass
+
+
+class ZoneWindow(tk.Frame):
+    def __init__(self):
+        pass
+
+
 class AccAddWindow(tk.Frame):
     def __init__(self, accdat, master=None, parent=None):
         tk.Frame.__init__(self, master)
         self.parent = parent
         self.master = master
-        self.master.title("Wprowadź dane nowego konta")
+        self.master.title("Wprowadź dane konta")
         self.button1 = tk.Button(self)
         self.button2 = tk.Button(self)
         self.entry1 = tk.Entry(self)
@@ -294,7 +527,7 @@ class AccAddWindow(tk.Frame):
         record = (s1, s2, s3, f1, s4, s5, i1, s6, c1)
         update = (s1, s2, s3, f1, s4, s5, i1, s6, c1, pes0)
         try:
-            if pes0 is None:
+            if pes0 == "":
                 cursor.execute(sql1, record)
             else:
                 cursor.execute(sql2, update)
