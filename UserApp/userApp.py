@@ -31,13 +31,13 @@ class MainWindow(tk.Frame):
         self.button6.pack(fill=tk.BOTH)
         self.button7 = tk.Button(self, text="Zarządzanie typami pojazdów", command=self.type_management)
         self.button7.pack(fill=tk.BOTH)
-        self.button8 = tk.Button(self, text="Zarządzanie miejscami parkingowymi", command=self.parking_management)
+        self.button8 = tk.Button(self, text="Zarządzanie strefami", command=self.zone_management)
         self.button8.pack(fill=tk.BOTH)
         self.button9 = tk.Button(self, text="Zarządzanie stawkami", command=self.rate_management)
         self.button9.pack(fill=tk.BOTH)
         self.button10 = tk.Button(self, text="Zarządzanie bramkami", command=self.gate_management)
         self.button10.pack(fill=tk.BOTH)
-        self.button11 = tk.Button(self, text="Zarządzanie strefami", command=self.zone_management)
+        self.button11 = tk.Button(self, text="Zarządzanie miejscami parkingowymi", command=self.parking_management)
         self.button11.pack(fill=tk.BOTH)
         self.pack()
         self.master.resizable(False, False)
@@ -52,11 +52,10 @@ class MainWindow(tk.Frame):
         app = TypeWindow(newWindow)
         app.draw_contents()
 
-    def parking_management(self):
-        # newWindow = tk.Toplevel(self.master)
-        # app = ParkingWindow(newWindow)
-        # app.draw_contents()
-        pass
+    def zone_management(self):
+        newWindow = tk.Toplevel(self.master)
+        app = ZoneWindow(newWindow)
+        app.draw_contents()
 
     def rate_management(self):
         # newWindow = tk.Toplevel(self.master)
@@ -70,9 +69,9 @@ class MainWindow(tk.Frame):
         # app.draw_contents()
         pass
 
-    def zone_management(self):
+    def parking_management(self):
         # newWindow = tk.Toplevel(self.master)
-        # app = ZoneWindow(newWindow)
+        # app = ParkingWindow(newWindow)
         # app.draw_contents()
         pass
 
@@ -421,6 +420,173 @@ class TypeAddWindow(tk.Frame):
         self.master.destroy()
 
 
+class ZoneWindow(tk.Frame):
+    def __init__(self, master=None):
+        tk.Frame.__init__(self, master)
+        self.master = master
+        self.master.title("Zarządzanie strefami")
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.master.geometry("420x510")
+        self.grid()
+        self.master.resizable(False, False)
+
+    def draw_contents(self):
+        canvas = tk.Canvas(self, width=400, height=500)
+        canvas.rowconfigure(0, weight=1)
+        canvas.columnconfigure(0, weight=1)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        canvasFrame = tk.Frame(canvas)
+        canvas.create_window(0, 0, window=canvasFrame, anchor='nw')
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT nazwa, kod FROM strefy ORDER BY id;"
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            field_names = [i[0] for i in cursor.description]
+            j = 0
+            length = len(field_names)
+            for j in range(length):
+                label1 = tk.Label(canvasFrame, text=field_names[j], font="bold", bg="light grey")
+                label1.grid(row=0, column=j, sticky="ew", padx=1, pady=1)
+            button1 = tk.Button(canvasFrame, bg="tomato", text="Dodaj ulgę")
+            button1.grid(row=0, column=j + 1, sticky="ew", padx=1, pady=1)
+            button1.configure(command=lambda fields=field_names: self.add_zone(fields))
+            for idxr, row in enumerate(result):
+                idxc = 0
+                for idxc, column in enumerate(row):
+                    label1 = tk.Label(canvasFrame, text=column)
+                    label1.grid(row=idxr + 1, column=idxc, padx=1, pady=1)
+                button1 = tk.Button(canvasFrame, bg="light blue", text="Edytuj ulgę")
+                button1.grid(row=idxr + 1, column=idxc + 1, sticky="ew", padx=1, pady=1)
+                button1.configure(
+                    command=lambda nazwa=result[idxr][0], fields=field_names: self.edit_zone(nazwa, fields))
+        except:
+            print("Error: Unable to fetch data")
+        db.close()
+        scroll = tk.Scrollbar(self, orient=tk.VERTICAL)
+        scroll.config(command=canvas.yview)
+        canvas.config(yscrollcommand=scroll.set)
+        scroll.grid(row=0, column=1, sticky="ns")
+        self.update()
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    def edit_zone(self, nazwa, field_names):
+        sql1 = "SELECT nazwa, kod FROM strefy WHERE nazwa = %s;"
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        cursor.execute(sql1, nazwa)
+        result = cursor.fetchone()
+        newWindow = tk.Toplevel(self.master)
+        app = ZoneAddWindow(result, newWindow, self)
+        app.draw_contents(field_names)
+
+    def add_zone(self, field_names):
+        zondat = (None, None)
+        newWindow = tk.Toplevel(self.master)
+        app = ZoneAddWindow(zondat, newWindow, self)
+        app.draw_contents(field_names)
+
+
+class ZoneAddWindow(tk.Frame):
+    def __init__(self, zondat, master=None, parent=None):
+        tk.Frame.__init__(self, master)
+        self.parent = parent
+        self.master = master
+        self.master.title("Wprowadź dane strefy")
+        self.button1 = tk.Button(self)
+        self.button2 = tk.Button(self)
+        self.entry1 = tk.Entry(self)
+        if zondat[0] is not None:
+            self.entry1.insert(0, zondat[0])
+        self.entry1.configure(validate="key",
+                              validatecommand=(self.register(self.on_validate_nazwa), "%d", "%i"))
+        self.entry2 = tk.Entry(self)
+        if zondat[1] is not None:
+            self.entry2.insert(0, zondat[1])
+        self.entry2.configure(validate="key",
+                              validatecommand=(self.register(self.on_validate_kod), "%d", "%i"))
+        self.grid()
+        self.master.resizable(False, False)
+
+    def on_validate_nazwa(self, why, where):
+        if why == '1':
+            if int(where) >= 40:
+                return False
+        return True
+
+    def on_validate_kod(self, why, where):
+        if why == '1':
+            if int(where) >= 10:
+                return False
+        return True
+
+    def draw_contents(self, field_names):
+        length = len(field_names)
+        j = 0
+        for j in range(length):
+            label1 = tk.Label(self, text=field_names[j])
+            label1.grid(row=j, column=0, sticky="ew", padx=1, pady=1)
+        label1 = tk.Label(self)
+        label1.grid(row=j + 1, column=0, padx=1, pady=1)
+        label1.grid(row=j + 1, column=1, padx=1, pady=1)
+        self.button1 = tk.Button(self, bg="green", text="OK",
+                                 command=lambda naz=self.entry1.get(), kod=self.entry2.get(): self.confirm_button_fun(
+                                     naz, kod))
+        self.button1.grid(row=j + 2, column=0, sticky="ew", padx=1, pady=1)
+        self.button2 = tk.Button(self, bg="tomato", text="Anuluj", command=self.master.destroy)
+        self.button2.grid(row=j + 2, column=1, padx=1, pady=1)
+        self.entry1.grid(row=0, column=1, sticky="ew", padx=1, pady=1)
+        self.entry2.grid(row=1, column=1, sticky="ew", padx=1, pady=1)
+
+    def confirm_button_fun(self, naz0, kod0):
+        if self.entry1.get() == "" or self.entry2.get() == "":
+            tk.messagebox.showerror("Error", "Pola nazwa, kod muszą być wypełnione")
+            return
+        if len(self.entry1.get()) > 40:
+            tk.messagebox.showerror("Error", "Nazwa strefy jest za długa")
+            return
+        if len(self.entry2.get()) > 10:
+            tk.messagebox.showerror("Error", "Podany kod jest za długi")
+            return
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        cursor.execute("SELECT nazwa FROM strefy WHERE nazwa = %s;", self.entry1.get())
+        naz = cursor.rowcount
+        nazval = cursor.fetchone()
+        cursor.execute("SELECT kod FROM strefy WHERE kod = %s;", self.entry2.get())
+        kod = cursor.rowcount
+        kodzal = cursor.fetchone()
+        if naz != 0:
+            if nazval[0] != naz0:
+                tk.messagebox.showerror("Error", "Istnieje już strefa o podanej nazwie")
+                db.close()
+                return
+        if kod != 0:
+            if kodzal[0] != kod0:
+                tk.messagebox.showerror("Error", "Istnieje już strefa o podanym kodzie")
+                db.close()
+                return
+        sql1 = "INSERT INTO strefy (nazwa, kod) VALUES (%s, %s);"
+        sql2 = "UPDATE strefy SET nazwa = %s, kod = %s WHERE nazwa = %s;"
+        s1 = self.entry1.get()
+        s2 = self.entry2.get()
+        record = (s1, s2)
+        update = (s1, s2, naz0)
+        try:
+            if naz0 == "":
+                cursor.execute(sql1, record)
+            else:
+                cursor.execute(sql2, update)
+        except:
+            print("Error: Unable to insert data")
+        db.commit()
+        db.close()
+        self.parent.draw_contents()
+        self.master.destroy()
+
+
 class ParkingWindow(tk.Frame):
     def __init__(self):
         pass
@@ -432,11 +598,6 @@ class RateWindow(tk.Frame):
 
 
 class GateWindow(tk.Frame):
-    def __init__(self):
-        pass
-
-
-class ZoneWindow(tk.Frame):
     def __init__(self):
         pass
 
