@@ -68,10 +68,9 @@ class MainWindow(tk.Frame):
         pass
 
     def gate_management(self):
-        # newWindow = tk.Toplevel(self.master)
-        # app = GateWindow(newWindow)
-        # app.draw_contents()
-        pass
+        newWindow = tk.Toplevel(self.master)
+        app = GateWindow(newWindow)
+        app.draw_contents()
 
     def parking_management(self):
         # newWindow = tk.Toplevel(self.master)
@@ -800,12 +799,196 @@ class RateAddWindow(tk.Frame):
         self.master.destroy()
 
 
+class GateWindow(tk.Frame):
+    def __init__(self, master=None):
+        tk.Frame.__init__(self, master)
+        self.master = master
+        self.master.title("Zarządzanie bramkami")
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.master.geometry("770x510")
+        self.grid()
+        self.master.resizable(False, False)
+
+    def draw_contents(self):
+        canvas = tk.Canvas(self, width=750, height=500)
+        canvas.rowconfigure(0, weight=1)
+        canvas.columnconfigure(0, weight=1)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        canvasFrame = tk.Frame(canvas)
+        canvas.create_window(0, 0, window=canvasFrame, anchor='nw')
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT bramki.nazwa, strefy.nazwa AS strefa, bramki.selektor AS typ_bramki \
+                FROM bramki LEFT JOIN strefy ON bramki.strefy_id = strefy.id \
+                ORDER BY strefy.nazwa, bramki.nazwa, bramki.selektor;"
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            field_names = [i[0] for i in cursor.description]
+            j = 0
+            length = len(field_names)
+            for j in range(length):
+                label1 = tk.Label(canvasFrame, text=field_names[j], font="bold", bg="light grey")
+                label1.grid(row=0, column=j, sticky="ew", padx=1, pady=1)
+            button1 = tk.Button(canvasFrame, bg="tomato", text="Dodaj bramkę")
+            button1.grid(row=0, column=j + 1, sticky="ew", padx=1, pady=1)
+            button1.configure(command=lambda fields=field_names: self.add_gate(fields))
+            for idxr, row in enumerate(result):
+                idxc = 0
+                for idxc, column in enumerate(row):
+                    label1 = tk.Label(canvasFrame, text=column)
+                    label1.grid(row=idxr + 1, column=idxc, padx=1, pady=1)
+                button1 = tk.Button(canvasFrame, bg="light blue", text="Edytuj bramkę")
+                button1.grid(row=idxr + 1, column=idxc + 1, sticky="ew", padx=1, pady=1)
+                button1.configure(command=lambda nazwa=result[idxr][0], strefa=result[idxr][1], typ=result[idxr][2],
+                                                 fields=field_names: self.edit_gate(nazwa, strefa, typ, fields))
+        except:
+            print("Error: Unable to fetch data")
+        db.close()
+        scroll = tk.Scrollbar(self, orient=tk.VERTICAL)
+        scroll.config(command=canvas.yview)
+        canvas.config(yscrollcommand=scroll.set)
+        scroll.grid(row=0, column=1, sticky="ns")
+        self.update()
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    def edit_gate(self, nazwa, strefa, typ, field_names):
+        sql1 = "SELECT nazwa, strefy_id, selektor FROM bramki WHERE nazwa = %s AND \
+                strefy_id = (SELECT id FROM strefy WHERE nazwa = %s) AND selektor = %s;"
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        dat = (nazwa, strefa, typ)
+        cursor.execute(sql1, dat)
+        result = cursor.fetchone()
+        db.close()
+        newWindow = tk.Toplevel(self.master)
+        app = GateAddWindow(result, newWindow, self)
+        app.draw_contents(field_names, "edit")
+
+    def add_gate(self, field_names):
+        gatdat = (None, None, None)
+        newWindow = tk.Toplevel(self.master)
+        app = GateAddWindow(gatdat, newWindow, self)
+        app.draw_contents(field_names, "insert")
+
+
+class GateAddWindow(tk.Frame):
+    def __init__(self, gatdat, master=None, parent=None):
+        tk.Frame.__init__(self, master)
+        self.parent = parent
+        self.master = master
+        self.master.title("Wprowadź dane bramki")
+        self.button1 = tk.Button(self)
+        self.button2 = tk.Button(self)
+        self.entry1 = tk.Entry(self)
+        if gatdat[0] is not None:
+            self.entry1.insert(0, gatdat[0])
+        self.entry1.configure(validate="key",
+                              validatecommand=(self.register(self.on_validate), "%d", "%i"))
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT nazwa FROM strefy;"
+        list1 = []
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            for column in result:
+                list1.append(column[0])
+        except:
+            print("Error: Unable to fetch data")
+        self.combobox1 = ttk.Combobox(self, state="readonly", values=list1, width=40)
+        if gatdat[1] is not None:
+            self.combobox1.current(gatdat[1] - 1)
+        else:
+            self.combobox1.current(0)
+        self.combobox2 = ttk.Combobox(self, state="readonly", values=["wjazdowe", "wyjazdowe"], width=40)
+        if gatdat[2] is not None:
+            if gatdat[2] == "wjazdowe":
+                self.combobox2.current(0)
+            else:
+                self.combobox2.current(1)
+        else:
+            self.combobox2.current(0)
+        db.close()
+        self.grid()
+        self.master.resizable(False, False)
+
+    def on_validate(self, why, where):
+        if why == '1':
+            if int(where) >= 40:
+                return False
+        return True
+
+    def draw_contents(self, field_names, flag):
+        length = len(field_names)
+        j = 0
+        for j in range(length):
+            label1 = tk.Label(self, text=field_names[j])
+            label1.grid(row=j, column=0, sticky="ew", padx=1, pady=1)
+        label1 = tk.Label(self)
+        label1.grid(row=j + 1, column=0, padx=1, pady=1)
+        label1.grid(row=j + 1, column=1, padx=1, pady=1)
+        self.button1 = tk.Button(self, bg="green", text="OK",
+                                 command=lambda nazwa=self.entry1.get(), strefa=self.combobox1.current() + 1,
+                                                typ=self.combobox2.get(), flaga=flag: self.confirm_button_fun(
+                                     nazwa, strefa, typ, flaga))
+        self.button1.grid(row=j + 2, column=0, sticky="ew", padx=1, pady=1)
+        self.button2 = tk.Button(self, bg="tomato", text="Anuluj", command=self.master.destroy)
+        self.button2.grid(row=j + 2, column=1, padx=1, pady=1)
+        self.entry1.grid(row=0, column=1, sticky="ew", padx=1, pady=1)
+        self.combobox1.grid(row=1, column=1, sticky="ew", padx=1, pady=1)
+        self.combobox2.grid(row=2, column=1, sticky="ew", padx=1, pady=1)
+        if flag == "edit":
+            self.combobox1.configure(state="disabled")
+            self.combobox2.configure(state="disabled")
+
+    def confirm_button_fun(self, nazw0, stref0, typ0, flaga):
+        if self.entry1.get() == "":
+            tk.messagebox.showerror("Error", "Pole nazwa musi być wypełnione")
+            return
+        if len(self.entry1.get()) > 40:
+            tk.messagebox.showerror("Error", "Nazwa bramki jest za długa")
+            return
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT nazwa, strefy_id, selektor FROM bramki WHERE nazwa = %s AND strefy_id = %s AND selektor = %s;"
+        dat = (self.entry1.get(), self.combobox1.current() + 1, self.combobox2.get())
+        cursor.execute(sql1, dat)
+        count = cursor.rowcount
+        val = cursor.fetchone()
+        if count != 0:
+            if flaga == "insert":
+                tk.messagebox.showerror("Error", "Istnieje już bramka o podanych danych")
+                db.close()
+                return
+            if flaga == "edit":
+                if not (val[0] == nazw0 and val[1] == stref0 and val[2] == typ0):
+                    tk.messagebox.showerror("Error", "Istnieje już bramka o podanych danych")
+                    db.close()
+                    return
+        sql1 = "INSERT INTO bramki (nazwa, strefy_id, selektor) VALUES (%s, %s, %s);"
+        sql2 = "UPDATE bramki SET nazwa = %s, strefy_id = %s, selektor = %s \
+                WHERE nazwa = %s AND strefy_id = %s AND selektor = %s;"
+        s1 = self.entry1.get()
+        i1 = self.combobox1.current() + 1
+        s2 = self.combobox2.get()
+        record = (s1, i1, s2)
+        update = (s1, i1, s2, nazw0, stref0, typ0)
+        try:
+            if flaga == "insert":
+                cursor.execute(sql1, record)
+            elif flaga == "edit":
+                cursor.execute(sql2, update)
+        except:
+            print("Error: Unable to insert data")
+        db.commit()
+        db.close()
+        self.parent.draw_contents()
+        self.master.destroy()
+
+
 # class ParkingWindow(tk.Frame):
-#    def __init__(self):
-#        pass
-
-
-# class GateWindow(tk.Frame):
 #    def __init__(self):
 #        pass
 
