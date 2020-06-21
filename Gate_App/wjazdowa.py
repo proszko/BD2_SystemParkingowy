@@ -14,21 +14,20 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Bramka wjazdowa")
-        self.resize(700,400)
+        # self.resize(700,400)
         self.center()
         self.main_window_init()
 
     def main_window_init(self):
-
-        self.setFont(QFont('SanSerif',16))
+        self.setFont(QFont('SanSerif', 12))
+        label1=QLabel("Wybierz właściwą opcję:")
+        self.setFont(QFont('SanSerif', 16))
         buttonCard = QPushButton("Posiadam kartę klienta")
         buttonNoCard = QPushButton("Nie posiadam karty klienta, nie mam konta")
         buttonNoCard2 = QPushButton("Nie posiadam karty klienta ale mam konto")
 
-        self.text=f"Wybierz właściwą opcję"
-        QLabel(self.text,self)
-
         self.vbox = QGridLayout()
+        self.vbox.addWidget(label1, 0, 0)
         self.vbox.addWidget(buttonCard, 1, 0)
         self.vbox.addWidget(buttonNoCard2, 2, 0)
         self.vbox.addWidget(buttonNoCard,3, 0)
@@ -39,7 +38,7 @@ class MainWindow(QWidget):
         buttonNoCard.clicked.connect(self.button3)
 
     def button1(self):
-        print('Button 1 was clicked')
+        # print('Button 1 was clicked')
         car_number, card_number, Option=self.openDialog1()
         # car_number="AAH88TV"
         # card_number="US96315"
@@ -55,20 +54,21 @@ class MainWindow(QWidget):
             else:
                 id_pobytu=self.SuccessProcess(Option, car_number, card_number)
         else:
-            print(f"Braki informacji")
-        if(Option):
-            kod_miejsca=self.getKodMiejsca(id_pobytu)
-            title="Sukces"
-            msg=f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-            self.ErrorINFO(msg,title)
-        else:
-            title = "Sukces"
-            msg = f"Proces przebiegł prawidłowo."
-            self.ErrorINFO(msg, title)
+            pass
+        if(check):
+            if(Option):
+                kod_miejsca=self.getKodMiejsca(id_pobytu)
+                title="Sukces"
+                msg=f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                self.ErrorINFO(msg,title)
+            else:
+                title = "Sukces"
+                msg = f"Proces przebiegł prawidłowo."
+                self.ErrorINFO(msg, title)
 
 
     def button2(self):
-        print('Button 2 was clicked')
+        # print('Button 2 was clicked')
         car_number, pesel, Option = self.openDialog2()
         # car_number = "AAH88TV"
         # pesel = "03102968983"
@@ -84,21 +84,22 @@ class MainWindow(QWidget):
             else:
                 id_pobytu=self.SuccessProcess(Option, car_number, pesel)
         else:
-            print(f"Braki informacji")
-
-        if (Option):
-            kod_miejsca = self.getKodMiejsca(id_pobytu)
-            title = "Sukces"
-            msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-            self.ErrorINFO(msg, title)
-        else:
-            title = "Sukces"
-            msg = f"Proces przebiegł prawidłowo."
-            self.ErrorINFO(msg, title)
+            pass
+        if(check):
+            if (Option):
+                kod_miejsca = self.getKodMiejsca(id_pobytu)
+                title = "Sukces"
+                msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                self.ErrorINFO(msg, title)
+            else:
+                title = "Sukces"
+                msg = f"Proces przebiegł prawidłowo."
+                self.ErrorINFO(msg, title)
 
     def button3(self):
-        print("Button 3 was clicked")
-        car_number, pesel, Option = self.openDialog3()
+        # print("Button 3 was clicked")
+        car_number, Option = self.openDialog3()
+        pesel=None
         # car_number = "AA11111"
         # pesel = "00002968983"
         check = self.decideIfInformationisComplete3(car_number, pesel)
@@ -113,17 +114,17 @@ class MainWindow(QWidget):
             else:
                 id_pobytu=self.SuccessProcess(Option, car_number, pesel, False)
         else:
-            print(f"Braki informacji")
-
-        if (Option):
-            kod_miejsca = self.getKodMiejsca(id_pobytu)
-            title = "Sukces"
-            msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-            self.ErrorINFO(msg, title)
-        else:
-            title = "Sukces"
-            msg = f"Proces przebiegł prawidłowo."
-            self.ErrorINFO(msg, title)
+            pass
+        if(check):
+            if (Option):
+                kod_miejsca = self.getKodMiejsca(id_pobytu)
+                title = "Sukces"
+                msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                self.ErrorINFO(msg, title)
+            else:
+                title = "Sukces"
+                msg = f"Proces przebiegł prawidłowo. Miłego pobytu."
+                self.ErrorINFO(msg, title)
 
     def center(self):
 
@@ -163,25 +164,36 @@ class MainWindow(QWidget):
         return (rejestracja, PESEL, option)
 
     def openDialog3(self):
-        msg = "Wprowadż numer PESEL"
-        dialog1 = InputDialog(msg)
+        msg = "Wprowadż rejestrację"
+        dialog1 = InputDialog1(msg)
         dialog1.show()
         if dialog1.exec():
-            rejestracja, pesel = dialog1.getInputs()
+            rejestracja = dialog1.getInputs()
         option = dialog1.getOption()
-        return (rejestracja, pesel, option)
+        return (rejestracja, option)
 
     def nowyPojazdDialog(self):
         opt = False
-        dialog1 = InputDialog2(opt)
-        dialog1.show()
-        if dialog1.exec():
-            rejestracja, model = dialog1.getInputs()
-        pojazd_id = dialog1.getComboValue()
-        self.addPojazd(rejestracja,pojazd_id,model)
-        Title="Sukces"
-        msg="Pomyślnie dodano pojazd. Proszę ponownie spróbować zarejestrować wjazd."
-        self.ErrorINFO(msg,Title)
+        status=False
+        while(status==False):
+            dialog1 = InputDialog2(opt)
+            dialog1.show()
+            if dialog1.exec():
+                rejestracja, model = dialog1.getInputs()
+            pojazd_id = dialog1.getComboValue()
+            if(len(rejestracja)<5 or len(rejestracja)>8):
+                msg="Nieprawidłowa rejestracja. Rejestracja powinna zawierać od 5 do 8 znaków łącznie. Spróbuj ponownie."
+                self.ErrorINFO(msg)
+            else:
+                if(len(model)<3):
+                    msg="Nie podano dostatecznej nazwy modelu. Spróbuj ponownie."
+                    self.ErrorINFO(msg)
+                else:
+                    status=True
+                    self.addPojazd(rejestracja,pojazd_id,model)
+                    Title="Sukces"
+                    msg="Pomyślnie dodano pojazd. Proszę ponownie spróbować zarejestrować wjazd."
+                    self.ErrorINFO(msg,Title)
 
     def lookforClientbyCard(self, card_number):
         db = MySQLdb.connect("localhost", "root", "wpisz_haslo", "database_test")
@@ -391,7 +403,7 @@ class InputDialog(QDialog):
         self.rejestracja = QLineEdit(self)
         self.numerIDkarty = QLineEdit(self)
         self.checkbox = QCheckBox("z parkowaniem")
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok , self);
 
         layout = QFormLayout(self)
         layout.addRow("Wpisz rejestrację", self.rejestracja)
@@ -401,11 +413,35 @@ class InputDialog(QDialog):
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
 
 
     def getInputs(self):
         return (self.rejestracja.text(), self.numerIDkarty.text())
+
+    def getOption(self):
+        if(self.checkbox.isChecked()):
+            return True
+        else:
+            return False
+
+
+class InputDialog1(QDialog):
+    def __init__(self, msg,parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Wprowadź dane")
+
+        self.rejestracja = QLineEdit(self)
+        self.checkbox = QCheckBox("z parkowaniem")
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok , self);
+        layout = QFormLayout(self)
+        layout.addRow(msg, self.rejestracja)
+        layout.addRow("", self.checkbox)
+        layout.addWidget(buttonBox)
+        buttonBox.accepted.connect(self.accept)
+
+
+    def getInputs(self):
+        return self.rejestracja.text()
 
     def getOption(self):
         if(self.checkbox.isChecked()):
@@ -428,7 +464,7 @@ class InputDialog2(QDialog):
         self.model = QLineEdit(self)
         if(opt):
             self.checkbox = QCheckBox("z parkowaniem")
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok, self);
 
         layout = QFormLayout(self)
         layout.addRow("Wpisz rejestrację", self.rejestracja)
@@ -440,7 +476,6 @@ class InputDialog2(QDialog):
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(self.accept)
-        buttonBox.rejected.connect(self.reject)
 
 
     def getInputs(self):
@@ -455,8 +490,6 @@ class InputDialog2(QDialog):
     def getComboValue(self):
         return self.comboBox.currentIndex()+1
 
-
-
 if __name__ == "__main__":
 
 
@@ -464,6 +497,3 @@ if __name__ == "__main__":
    window = MainWindow()
    window.show()
    sys.exit(app.exec_())
-
-
-
