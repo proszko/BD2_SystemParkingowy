@@ -1248,7 +1248,7 @@ class AccountWindow(tk.Frame):
                 konta.telefon, konta.email, ulgi.nazwa AS nazwa_ulgi, konta.kod_karty, \
                 IF(konta.aktywne = 1, 'aktywne', 'nieaktywne') AS stan_konta \
                 FROM konta LEFT JOIN ulgi ON konta.ulgi_id = ulgi.id \
-                ORDER BY konta.aktywne DESC, konta.nazwisko ASC, konta.imię ASC;"
+                ORDER BY konta.aktywne DESC, konta.pesel ASC;"
         try:
             cursor.execute(sql1)
             result = cursor.fetchall()
