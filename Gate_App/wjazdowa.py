@@ -43,28 +43,41 @@ class MainWindow(QWidget):
         # car_number="AAH88TV"
         # card_number="US96315"
         check=self.decideIfInformationisComplete(car_number, card_number)
+        flag1=False
         if(check):
+            ishere, id_pobytu = self.getOtwartePobyty(car_number)
             if(Option):
                 if(self.areAvailablePlaces(car_number)):
-                    id_pobytu=self.SuccessProcess(Option, car_number, card_number)
+                    if (ishere):
+                        msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                        self.ErrorINFO(msg)
+                    else:
+                        id_pobytu=self.SuccessProcess(Option, car_number, card_number)
+                        flag1=True
                 else:
                     Title = "Niepowodzenie"
                     msg=f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
                     self.ErrorINFO(msg,Title)
             else:
-                id_pobytu=self.SuccessProcess(Option, car_number, card_number)
+                if(ishere):
+                    msg=f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                    self.ErrorINFO(msg)
+                else:
+                    id_pobytu=self.SuccessProcess(Option, car_number, card_number)
+                    flag1=True
         else:
             pass
         if(check):
-            if(Option):
-                kod_miejsca=self.getKodMiejsca(id_pobytu)
-                title="Sukces"
-                msg=f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-                self.ErrorINFO(msg,title)
-            else:
-                title = "Sukces"
-                msg = f"Proces przebiegł prawidłowo."
-                self.ErrorINFO(msg, title)
+            if(flag1):
+                if(Option):
+                    kod_miejsca=self.getKodMiejsca(id_pobytu)
+                    title="Sukces"
+                    msg=f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                    self.ErrorINFO(msg,title)
+                else:
+                    title = "Sukces"
+                    msg = f"Proces przebiegł prawidłowo."
+                    self.ErrorINFO(msg, title)
 
 
     def button2(self):
@@ -73,28 +86,41 @@ class MainWindow(QWidget):
         # car_number = "AAH88TV"
         # pesel = "03102968983"
         check=self.decideIfInformationisComplete2(car_number, pesel)
+        flag1=False
         if (check):
+            ishere, id_pobytu = self.getOtwartePobyty(car_number)
             if (Option):
                 if (self.areAvailablePlaces(car_number)):
-                    id_pobytu=self.SuccessProcess(Option, car_number, pesel)
+                    if (ishere):
+                        msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                        self.ErrorINFO(msg)
+                    else:
+                        id_pobytu=self.SuccessProcess(Option, car_number, pesel)
+                        flag1=True
                 else:
                     Title = "Niepowodzenie"
                     msg = f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
                     self.ErrorINFO(msg, Title)
             else:
-                id_pobytu=self.SuccessProcess(Option, car_number, pesel)
+                if (ishere):
+                    msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                    self.ErrorINFO(msg)
+                else:
+                    id_pobytu=self.SuccessProcess(Option, car_number, pesel)
+                    flag1=True
         else:
             pass
         if(check):
-            if (Option):
-                kod_miejsca = self.getKodMiejsca(id_pobytu)
-                title = "Sukces"
-                msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-                self.ErrorINFO(msg, title)
-            else:
-                title = "Sukces"
-                msg = f"Proces przebiegł prawidłowo."
-                self.ErrorINFO(msg, title)
+            if(flag1):
+                if (Option):
+                    kod_miejsca = self.getKodMiejsca(id_pobytu)
+                    title = "Sukces"
+                    msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                    self.ErrorINFO(msg, title)
+                else:
+                    title = "Sukces"
+                    msg = f"Proces przebiegł prawidłowo."
+                    self.ErrorINFO(msg, title)
 
     def button3(self):
         # print("Button 3 was clicked")
@@ -103,28 +129,41 @@ class MainWindow(QWidget):
         # car_number = "AA11111"
         # pesel = "00002968983"
         check = self.decideIfInformationisComplete3(car_number, pesel)
+        flag1=False
         if (check):
+            ishere, id_pobytu = self.getOtwartePobyty(car_number)
             if (Option):
                 if (self.areAvailablePlaces(car_number)):
-                    id_pobytu=self.SuccessProcess(Option, car_number, pesel,False)
+                    if (ishere):
+                        msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                        self.ErrorINFO(msg)
+                    else:
+                        id_pobytu=self.SuccessProcess(Option, car_number, pesel,False)
+                        flag1=True
                 else:
                     Title = "Niepowodzenie"
                     msg = f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
                     self.ErrorINFO(msg, Title)
             else:
-                id_pobytu=self.SuccessProcess(Option, car_number, pesel, False)
+                if (ishere):
+                    msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                    self.ErrorINFO(msg)
+                else:
+                    id_pobytu=self.SuccessProcess(Option, car_number, pesel, False)
+                    flag1=True
         else:
             pass
         if(check):
-            if (Option):
-                kod_miejsca = self.getKodMiejsca(id_pobytu)
-                title = "Sukces"
-                msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-                self.ErrorINFO(msg, title)
-            else:
-                title = "Sukces"
-                msg = f"Proces przebiegł prawidłowo. Miłego pobytu."
-                self.ErrorINFO(msg, title)
+            if (flag1):
+                if (Option):
+                    kod_miejsca = self.getKodMiejsca(id_pobytu)
+                    title = "Sukces"
+                    msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                    self.ErrorINFO(msg, title)
+                else:
+                    title = "Sukces"
+                    msg = f"Proces przebiegł prawidłowo. Miłego pobytu."
+                    self.ErrorINFO(msg, title)
 
     def center(self):
 
@@ -394,6 +433,20 @@ class MainWindow(QWidget):
         data=data[0]
         db.close()
         return data
+
+    def getOtwartePobyty(self,rejestracja):
+        db = MySQLdb.connect("localhost", "root", "wpisz_haslo", "database_test")
+        cursor = db.cursor()
+        sql1 = "SELECT id FROM pobyty WHERE pojazdy_rejestracja=%s and godzina_zakonczenia is NULL"
+        cursor.execute(sql1, [rejestracja])
+        data = cursor.fetchone()
+        db.close()
+        if (data != None):
+            id = data[0]
+            exit = (True, id)
+        else:
+            exit = (False, None)
+        return exit
 
 class InputDialog(QDialog):
     def __init__(self, msg2,parent=None):
