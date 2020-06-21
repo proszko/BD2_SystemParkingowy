@@ -40,130 +40,135 @@ class MainWindow(QWidget):
     def button1(self):
         # print('Button 1 was clicked')
         car_number, card_number, Option=self.openDialog1()
-        # car_number="AAH88TV"
-        # card_number="US96315"
-        check=self.decideIfInformationisComplete(car_number, card_number)
-        flag1=False
-        if(check):
-            ishere, id_pobytu = self.getOtwartePobyty(car_number)
-            if(Option):
-                if(self.areAvailablePlaces(car_number)):
-                    if (ishere):
-                        msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+        if(card_number!=None):
+            # car_number="AAH88TV"
+            # card_number="US96315"
+            check=self.decideIfInformationisComplete(car_number, card_number)
+            flag1=False
+            if(check):
+                ishere, id_pobytu = self.getOtwartePobyty(car_number)
+                if(Option):
+                    if(self.areAvailablePlaces(car_number)):
+                        if (ishere):
+                            msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                            self.ErrorINFO(msg)
+                        else:
+                            id_pobytu=self.SuccessProcess(Option, car_number, card_number)
+                            flag1=True
+                    else:
+                        Title = "Niepowodzenie"
+                        msg=f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
+                        self.ErrorINFO(msg,Title)
+                else:
+                    if(ishere):
+                        msg=f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
                         self.ErrorINFO(msg)
                     else:
                         id_pobytu=self.SuccessProcess(Option, car_number, card_number)
                         flag1=True
-                else:
-                    Title = "Niepowodzenie"
-                    msg=f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
-                    self.ErrorINFO(msg,Title)
             else:
-                if(ishere):
-                    msg=f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
-                    self.ErrorINFO(msg)
-                else:
-                    id_pobytu=self.SuccessProcess(Option, car_number, card_number)
-                    flag1=True
-        else:
-            pass
-        if(check):
-            if(flag1):
-                if(Option):
-                    kod_miejsca=self.getKodMiejsca(id_pobytu)
-                    title="Sukces"
-                    msg=f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-                    self.ErrorINFO(msg,title)
-                else:
-                    title = "Sukces"
-                    msg = f"Proces przebiegł prawidłowo."
-                    self.ErrorINFO(msg, title)
+                pass
+            if(check):
+                if(flag1):
+                    if(Option):
+                        kod_miejsca=self.getKodMiejsca(id_pobytu)
+                        title="Sukces"
+                        msg=f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                        self.ErrorINFO(msg,title)
+                    else:
+                        title = "Sukces"
+                        msg = f"Proces przebiegł prawidłowo."
+                        self.ErrorINFO(msg, title)
 
 
     def button2(self):
         # print('Button 2 was clicked')
         car_number, pesel, Option = self.openDialog2()
-        # car_number = "AAH88TV"
-        # pesel = "03102968983"
-        check=self.decideIfInformationisComplete2(car_number, pesel)
-        flag1=False
-        if (check):
-            ishere, id_pobytu = self.getOtwartePobyty(car_number)
-            if (Option):
-                if (self.areAvailablePlaces(car_number)):
+        if(car_number!=None):
+            # car_number = "AAH88TV"
+            # pesel = "03102968983"
+            check=self.decideIfInformationisComplete2(car_number, pesel)
+            flag1=False
+            if (check):
+                ishere, id_pobytu = self.getOtwartePobyty(car_number)
+                if (Option):
+                    if (self.areAvailablePlaces(car_number)):
+                        if (ishere):
+                            msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                            self.ErrorINFO(msg)
+                        else:
+                            id_pobytu=self.SuccessProcess(Option, car_number, pesel)
+                            flag1=True
+                    else:
+                        Title = "Niepowodzenie"
+                        msg = f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
+                        self.ErrorINFO(msg, Title)
+                else:
                     if (ishere):
                         msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
                         self.ErrorINFO(msg)
                     else:
                         id_pobytu=self.SuccessProcess(Option, car_number, pesel)
                         flag1=True
-                else:
-                    Title = "Niepowodzenie"
-                    msg = f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
-                    self.ErrorINFO(msg, Title)
             else:
-                if (ishere):
-                    msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
-                    self.ErrorINFO(msg)
-                else:
-                    id_pobytu=self.SuccessProcess(Option, car_number, pesel)
-                    flag1=True
-        else:
-            pass
-        if(check):
-            if(flag1):
-                if (Option):
-                    kod_miejsca = self.getKodMiejsca(id_pobytu)
-                    title = "Sukces"
-                    msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-                    self.ErrorINFO(msg, title)
-                else:
-                    title = "Sukces"
-                    msg = f"Proces przebiegł prawidłowo."
-                    self.ErrorINFO(msg, title)
+                pass
+            if(check):
+                if(flag1):
+                    if (Option):
+                        kod_miejsca = self.getKodMiejsca(id_pobytu)
+                        title = "Sukces"
+                        msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                        self.ErrorINFO(msg, title)
+                    else:
+                        title = "Sukces"
+                        msg = f"Proces przebiegł prawidłowo."
+                        self.ErrorINFO(msg, title)
 
     def button3(self):
         # print("Button 3 was clicked")
         car_number, Option = self.openDialog3()
-        pesel=None
-        # car_number = "AA11111"
-        # pesel = "00002968983"
-        check = self.decideIfInformationisComplete3(car_number, pesel)
-        flag1=False
-        if (check):
-            ishere, id_pobytu = self.getOtwartePobyty(car_number)
-            if (Option):
-                if (self.areAvailablePlaces(car_number)):
+        if(car_number==None):
+            return
+        else:
+            pesel=None
+            # car_number = "AA11111"
+            # pesel = "00002968983"
+            check = self.decideIfInformationisComplete3(car_number, pesel)
+            flag1=False
+            if (check):
+                ishere, id_pobytu = self.getOtwartePobyty(car_number)
+                if (Option):
+                    if (self.areAvailablePlaces(car_number)):
+                        if (ishere):
+                            msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
+                            self.ErrorINFO(msg)
+                        else:
+                            id_pobytu=self.SuccessProcess(Option, car_number, pesel,False)
+                            flag1=True
+                    else:
+                        Title = "Niepowodzenie"
+                        msg = f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
+                        self.ErrorINFO(msg, Title)
+                else:
                     if (ishere):
                         msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
                         self.ErrorINFO(msg)
                     else:
-                        id_pobytu=self.SuccessProcess(Option, car_number, pesel,False)
+                        id_pobytu=self.SuccessProcess(Option, car_number, pesel, False)
                         flag1=True
-                else:
-                    Title = "Niepowodzenie"
-                    msg = f"Brak wolnych miejsc w wybranej strefie.\nSpróbuj w innej bramce.\n Przepraszamy!"
-                    self.ErrorINFO(msg, Title)
             else:
-                if (ishere):
-                    msg = f"Nie można wjechać. Pojazd o rejestracji: {car_number} znajduje się już w strefie."
-                    self.ErrorINFO(msg)
-                else:
-                    id_pobytu=self.SuccessProcess(Option, car_number, pesel, False)
-                    flag1=True
-        else:
-            pass
-        if(check):
-            if (flag1):
-                if (Option):
-                    kod_miejsca = self.getKodMiejsca(id_pobytu)
-                    title = "Sukces"
-                    msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
-                    self.ErrorINFO(msg, title)
-                else:
-                    title = "Sukces"
-                    msg = f"Proces przebiegł prawidłowo. Miłego pobytu."
-                    self.ErrorINFO(msg, title)
+                pass
+            if(check):
+                if (flag1):
+                    if (Option):
+                        kod_miejsca = self.getKodMiejsca(id_pobytu)
+                        title = "Sukces"
+                        msg = f"Proces przebiegł prawidłowo. Przyznano miejsce o kodzie: {kod_miejsca}."
+                        self.ErrorINFO(msg, title)
+                    else:
+                        title = "Sukces"
+                        msg = f"Proces przebiegł prawidłowo. Miłego pobytu."
+                        self.ErrorINFO(msg, title)
 
     def center(self):
 
@@ -188,28 +193,38 @@ class MainWindow(QWidget):
         msg="Wprowadź kod karty"
         dialog1=InputDialog(msg)
         dialog1.show()
-        if dialog1.exec():
+        output = dialog1.exec()
+        if (output == QDialog.Accepted):
             rejestracja, nr_karty = dialog1.getInputs()
-        option = dialog1.getOption()
-        return (rejestracja, nr_karty, option)
+            option = dialog1.getOption()
+            return (rejestracja, nr_karty, option)
+        elif(output==QDialog.Rejected):
+            return (None,None,None)
+
 
     def openDialog2(self):
         msg = "Wprowadż numer PESEL"
         dialog1 = InputDialog(msg)
         dialog1.show()
-        if dialog1.exec():
+        output = dialog1.exec()
+        if (output == QDialog.Accepted):
             rejestracja, PESEL = dialog1.getInputs()
-        option = dialog1.getOption()
-        return (rejestracja, PESEL, option)
+            option = dialog1.getOption()
+            return (rejestracja, PESEL, option)
+        elif (output == QDialog.Rejected):
+            return (None, None, None)
 
     def openDialog3(self):
         msg = "Wprowadż rejestrację"
         dialog1 = InputDialog1(msg)
         dialog1.show()
-        if dialog1.exec():
+        output = dialog1.exec()
+        if (output == QDialog.Accepted):
             rejestracja = dialog1.getInputs()
-        option = dialog1.getOption()
-        return (rejestracja, option)
+            option = dialog1.getOption()
+            return (rejestracja, option)
+        elif (output == 0):
+            return (None, None)
 
     def nowyPojazdDialog(self):
         opt = False
@@ -217,8 +232,11 @@ class MainWindow(QWidget):
         while(status==False):
             dialog1 = InputDialog2(opt)
             dialog1.show()
-            if dialog1.exec():
+            output=dialog1.exec()
+            if (output==QDialog.Accepted):
                 rejestracja, model = dialog1.getInputs()
+            elif(output==QDialog.Rejected):
+                break
             pojazd_id = dialog1.getComboValue()
             if(len(rejestracja)<5 or len(rejestracja)>8):
                 msg="Nieprawidłowa rejestracja. Rejestracja powinna zawierać od 5 do 8 znaków łącznie. Spróbuj ponownie."
@@ -456,7 +474,7 @@ class InputDialog(QDialog):
         self.rejestracja = QLineEdit(self)
         self.numerIDkarty = QLineEdit(self)
         self.checkbox = QCheckBox("z parkowaniem")
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok , self);
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
 
         layout = QFormLayout(self)
         layout.addRow("Wpisz rejestrację", self.rejestracja)
@@ -466,6 +484,7 @@ class InputDialog(QDialog):
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
 
 
     def getInputs(self):
@@ -485,13 +504,13 @@ class InputDialog1(QDialog):
 
         self.rejestracja = QLineEdit(self)
         self.checkbox = QCheckBox("z parkowaniem")
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok , self);
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
         layout = QFormLayout(self)
         layout.addRow(msg, self.rejestracja)
         layout.addRow("", self.checkbox)
         layout.addWidget(buttonBox)
         buttonBox.accepted.connect(self.accept)
-
+        buttonBox.rejected.connect(self.reject)
 
     def getInputs(self):
         return self.rejestracja.text()
@@ -517,7 +536,7 @@ class InputDialog2(QDialog):
         self.model = QLineEdit(self)
         if(opt):
             self.checkbox = QCheckBox("z parkowaniem")
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok, self);
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
 
         layout = QFormLayout(self)
         layout.addRow("Wpisz rejestrację", self.rejestracja)
@@ -529,6 +548,7 @@ class InputDialog2(QDialog):
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
 
 
     def getInputs(self):
