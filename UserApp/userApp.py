@@ -41,7 +41,7 @@ class MainWindow(tk.Frame):
         self.button10 = tk.Button(self, text="Zarządzanie bramkami", bg="light coral", command=self.gate_management)
         self.button10.pack(fill=tk.BOTH)
         self.button11 = tk.Button(self, text="Zarządzanie miejscami parkingowymi", bg="light coral",
-                                  command=self.parking_management)
+                                  command=self.choose_zone)
         self.button11.pack(fill=tk.BOTH)
         self.pack()
         self.master.resizable(False, False)
@@ -72,10 +72,10 @@ class MainWindow(tk.Frame):
         app = GateWindow(newWindow)
         app.draw_contents()
 
-    def parking_management(self):
+    def parking_management(self, naz):
         newWindow = tk.Toplevel(self.master)
         app = ParkingWindow(newWindow)
-        app.draw_contents()
+        app.draw_contents(naz)
 
     def park_zone_status(self):
         newWindow = tk.Toplevel(self.master)
@@ -118,6 +118,46 @@ class MainWindow(tk.Frame):
         db.close()
         f.close()
         tk.messagebox.showinfo("Information", "Wygenerowano listę zaległości - plik lista.txt")
+
+    def choose_zone(self):
+        newWindow = tk.Toplevel(self.master)
+        app = ChooseZoneWindow(newWindow, self)
+
+
+class ChooseZoneWindow(tk.Frame):
+    def __init__(self, master=None, parent=None):
+        tk.Frame.__init__(self, master)
+        self.master = master
+        self.parent = parent
+        self.master.title("Wybierz strefę")
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT nazwa FROM strefy;"
+        list1 = []
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            for column in result:
+                list1.append(column[0])
+        except:
+            print("Error: Unable to fetch data")
+        db.close()
+        self.label1 = tk.Label(self, text="strefa")
+        self.label1.grid(row=0, column=0, sticky="ew", padx=1, pady=1)
+        self.combobox1 = ttk.Combobox(self, state="readonly", values=list1, width=40)
+        self.combobox1.current(0)
+        self.button1 = tk.Button(self, bg="green", text="OK",
+                                 command=lambda naz=self.combobox1.current() + 1: self.confirm_button_fun(naz))
+        self.button1.grid(row=2, column=0, sticky="ew", padx=1, pady=1)
+        self.button2 = tk.Button(self, bg="tomato", text="Anuluj", command=self.master.destroy)
+        self.button2.grid(row=2, column=1, padx=1, pady=1)
+        self.combobox1.grid(row=0, column=1, sticky="ew", padx=1, pady=1)
+        self.grid()
+        self.master.resizable(False, False)
+
+    def confirm_button_fun(self, naz):
+        self.parent.parking_management(naz)
+        self.master.destroy()
 
 
 class DiscountWindow(tk.Frame):
@@ -998,7 +1038,7 @@ class ParkingWindow(tk.Frame):
         self.grid()
         self.master.resizable(False, False)
 
-    def draw_contents(self):
+    def draw_contents(self, naz):
         canvas = tk.Canvas(self, width=450, height=500)
         canvas.rowconfigure(0, weight=1)
         canvas.columnconfigure(0, weight=1)
@@ -1010,9 +1050,9 @@ class ParkingWindow(tk.Frame):
         sql1 = "SELECT miejsca.kod, strefy.nazwa AS strefa, typy_pojazdów.nazwa AS typ_pojazdu \
                 FROM miejsca LEFT JOIN strefy ON miejsca.strefy_id = strefy.id \
                 LEFT JOIN typy_pojazdów ON miejsca.typy_pojazdów_id = typy_pojazdów.id \
-                ORDER BY strefy.nazwa, typy_pojazdów.nazwa, miejsca.kod;"
+                WHERE strefy_id = %s ORDER BY typy_pojazdów.nazwa, miejsca.kod;"
         try:
-            cursor.execute(sql1)
+            cursor.execute(sql1, naz)
             result = cursor.fetchall()
             field_names = [i[0] for i in cursor.description]
             j = 0
@@ -1181,7 +1221,7 @@ class ParkingAddWindow(tk.Frame):
             print("Error: Unable to insert data")
         db.commit()
         db.close()
-        self.parent.draw_contents()
+        self.parent.draw_contents(i1)
         self.master.destroy()
 
 
