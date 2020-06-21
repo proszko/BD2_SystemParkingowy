@@ -49,172 +49,180 @@ class MainWindow(QWidget):
         # car_number = "AAH88TV"
         if(self.comboBox.currentIndex()==0):
             rejestracja, numer = self.openDialog1()
-            # rejestracja = "AAH88TV"
-            # numer = "03102968983"
-            # numer="US96315"
-            flag1=False
-            if(len(rejestracja)<5 or len(rejestracja)>8):
-                msg = "Wprowadzono nieprawidłową rejestrację. Spróbuj ponownie"
-                self.ErrorINFO(msg)
-            else:
-                car_result=self.lookforClientbyCar(rejestracja)
-                if(len(car_result)==1):
-                    flag1=True
-                else:
-                    msg = f"Nie ma w bazie pojazdu o numerze rejestracyjnym: {rejestracja}. Spróbuj ponownie"
+            if(rejestracja!=None):
+                # rejestracja = "AAH88TV"
+                # numer = "03102968983"
+                # numer="US96315"
+                flag1=False
+                if(len(rejestracja)<5 or len(rejestracja)>8):
+                    msg = "Wprowadzono nieprawidłową rejestrację. Spróbuj ponownie"
                     self.ErrorINFO(msg)
-
-            if(len(numer)!=11 and len(numer)!=7):
-                msg = "Wprowadzono nieprawidłowy identyfikator. Spróbuj ponownie"
-                self.ErrorINFO(msg)
-            else:
-                if(len(numer)==11):
-                    data = self.lookforClientbyPesel(int(numer))
-                    if (len(data) != 1):
-                        msg = "Nie ma takiego klienta w bazie. Spróbuj ponownie"
-                        self.ErrorINFO(msg)
-                    else:
-                        if(flag1):
-                            exit, id_pobytu=self.updatePobyt(rejestracja)
-                            if(exit):
-                                saldo = data[0][4]
-                                Title = "Sukces"
-                                msg = f"Pobyt zakończony sukcesem. Stan twojego konta wynosi {saldo}."
-                                self.ErrorINFO(msg, Title)
-                            else:
-                                msg = f"Nie udało się znaleźć niezakończonego pobytu pojazdu o rejestracji: {rejestracja}."
-                                self.ErrorINFO(msg)
-                        else:
-                            pass
                 else:
-                    data = self.lookforClientbyCard(numer)
-                    if (len(data) != 1):
-                        msg = "Nie ma takiego klienta w bazie. Spróbuj ponownie"
-                        self.ErrorINFO(msg)
+                    car_result=self.lookforClientbyCar(rejestracja)
+                    if(len(car_result)==1):
+                        flag1=True
                     else:
-                        if (flag1):
-                            exit, id_pobytu = self.updatePobyt(rejestracja)
-                            if (exit):
-                                saldo = data[0][4]
-                                Title = "Sukces"
-                                msg = f"Pobyt zakończony sukcesem. Stan twojego konta wynosi {saldo}."
-                                self.ErrorINFO(msg, Title)
-                            else:
-                                msg = f"Nie udało się znaleźć niezakończonego pobytu pojazdu o rejestracji: {rejestracja}."
-                                self.ErrorINFO(msg)
+                        msg = f"Nie ma w bazie pojazdu o numerze rejestracyjnym: {rejestracja}. Spróbuj ponownie"
+                        self.ErrorINFO(msg)
+
+                if(len(numer)!=11 and len(numer)!=7):
+                    msg = "Wprowadzono nieprawidłowy identyfikator. Spróbuj ponownie"
+                    self.ErrorINFO(msg)
+                else:
+                    if(len(numer)==11):
+                        data = self.lookforClientbyPesel(int(numer))
+                        if (len(data) != 1):
+                            msg = "Nie ma takiego klienta w bazie. Spróbuj ponownie"
+                            self.ErrorINFO(msg)
                         else:
-                            pass
+                            if(flag1):
+                                exit, id_pobytu=self.updatePobyt(rejestracja)
+                                if(exit):
+                                    saldo = data[0][4]
+                                    Title = "Sukces"
+                                    msg = f"Pobyt zakończony sukcesem. Stan twojego konta wynosi {saldo}."
+                                    self.ErrorINFO(msg, Title)
+                                else:
+                                    msg = f"Nie udało się znaleźć niezakończonego pobytu pojazdu o rejestracji: {rejestracja}."
+                                    self.ErrorINFO(msg)
+                            else:
+                                pass
+                    else:
+                        data = self.lookforClientbyCard(numer)
+                        if (len(data) != 1):
+                            msg = "Nie ma takiego klienta w bazie. Spróbuj ponownie"
+                            self.ErrorINFO(msg)
+                        else:
+                            if (flag1):
+                                exit, id_pobytu = self.updatePobyt(rejestracja)
+                                if (exit):
+                                    saldo = data[0][4]
+                                    Title = "Sukces"
+                                    msg = f"Pobyt zakończony sukcesem. Stan twojego konta wynosi {saldo}."
+                                    self.ErrorINFO(msg, Title)
+                                else:
+                                    msg = f"Nie udało się znaleźć niezakończonego pobytu pojazdu o rejestracji: {rejestracja}."
+                                    self.ErrorINFO(msg)
+                            else:
+                                pass
 
 
         else:
             rejestracja, option=self.openDialog12()
-            flag1 = False
-            if (len(rejestracja) < 5 or len(rejestracja) > 8):
-                msg = "Wprowadzono nieprawidłową rejestrację. Spróbuj ponownie"
-                self.ErrorINFO(msg)
-            else:
-                car_result = self.lookforClientbyCar(rejestracja)
-                if (len(car_result) == 1):
-                    flag1 = True
-                else:
-                    msg = f"Nie ma w bazie pojazdu o numerze rejestracyjnym: {rejestracja}. Spróbuj ponownie"
+            if(rejestracja!=None):
+                flag1 = False
+                if (len(rejestracja) < 5 or len(rejestracja) > 8):
+                    msg = "Wprowadzono nieprawidłową rejestrację. Spróbuj ponownie"
                     self.ErrorINFO(msg)
-
-            flag2=False
-            if(flag1):
-                exit, id_pobytu = self.updatePobyt(rejestracja)
-                if (exit):
-                    flag2=True
                 else:
-                    msg = f"Nie udało się znaleźć niezakończonego pobytu pojazdu o rejestracji: {rejestracja}."
-                    self.ErrorINFO(msg)
-
-            if(flag1):
-                exit, id_pobytu = self.updatePobyt(rejestracja)
-                if(flag2):
-                    if(option==0):
-                        naleznosc=self.getlNaleznosc(id_pobytu)
-                        msg = f"Należność za usługę wynosi: {naleznosc} złotych. W celu zakończenia przyłóż kartę."
-                        Title="Instrukcja"
-                        self.ErrorINFO(msg, Title)
-                        Title = "Sukces"
-                        msg = f"Pobyt zakończony sukcesem. Miłego dnia."
-                        self.ErrorINFO(msg, Title)
+                    car_result = self.lookforClientbyCar(rejestracja)
+                    if (len(car_result) == 1):
+                        flag1 = True
                     else:
-                        naleznosc = self.getlNaleznosc(id_pobytu)
-                        status=False
+                        msg = f"Nie ma w bazie pojazdu o numerze rejestracyjnym: {rejestracja}. Spróbuj ponownie"
+                        self.ErrorINFO(msg)
 
-                        msg = f"Należność za usługę wynosi: {naleznosc} złotych. W celu zakończenia wprowadź kwotę równą lub większą."
-                        Title = "Instrukcja"
-                        self.ErrorINFO(msg, Title)
-                        while (status == False):
-                            kwota=self.openDialog13()
-                            isd=kwota.isdigit()
-                            if(isd):
-                                kwota=int(kwota)/100
-                                dif=kwota-naleznosc
-                                if(dif>=0):
-                                    msg=f"Wydana reszta: {dif} złotych. Miłego dnia."
-                                    Title= "Sukces"
-                                    self.ErrorINFO(msg,Title)
-                                    status=True
+                flag2=False
+                if(flag1):
+                    exit, id_pobytu = self.updatePobyt(rejestracja)
+                    if (exit):
+                        flag2=True
+                    else:
+                        msg = f"Nie udało się znaleźć niezakończonego pobytu pojazdu o rejestracji: {rejestracja}."
+                        self.ErrorINFO(msg)
+
+                if(flag1):
+                    exit, id_pobytu = self.updatePobyt(rejestracja)
+                    if(flag2):
+                        if(option==0):
+                            naleznosc=self.getlNaleznosc(id_pobytu)
+                            msg = f"Należność za usługę wynosi: {naleznosc} złotych. W celu zakończenia przyłóż kartę."
+                            Title="Instrukcja"
+                            self.ErrorINFO(msg, Title)
+                            Title = "Sukces"
+                            msg = f"Pobyt zakończony sukcesem. Miłego dnia."
+                            self.ErrorINFO(msg, Title)
+                        else:
+                            naleznosc = self.getlNaleznosc(id_pobytu)
+                            status=False
+
+                            msg = f"Należność za usługę wynosi: {naleznosc} złotych. W celu zakończenia wprowadź kwotę równą lub większą."
+                            Title = "Instrukcja"
+                            self.ErrorINFO(msg, Title)
+                            while (status == False):
+                                kwota=self.openDialog13()
+                                isd=kwota.isdigit()
+                                if(isd):
+                                    kwota=int(kwota)/100
+                                    dif=kwota-naleznosc
+                                    if(dif>=0):
+                                        msg=f"Wydana reszta: {dif} złotych. Miłego dnia."
+                                        Title= "Sukces"
+                                        self.ErrorINFO(msg,Title)
+                                        status=True
+                                    else:
+                                        msg=f"Brakuje jeszcze {-dif} złotych. Wprowadż tą kwotę aby zakończyć"
+                                        Title = "Sukces"
+                                        self.ErrorINFO(msg, Title)
+                                        naleznosc=-dif
                                 else:
-                                    msg=f"Brakuje jeszcze {-dif} złotych. Wprowadż tą kwotę aby zakończyć"
-                                    Title = "Sukces"
-                                    self.ErrorINFO(msg, Title)
-                                    naleznosc=-dif
-                            else:
-                                msg = f"Kwota powinna być dodatnią cyfrą. Spróbuj ponownie."
-                                self.ErrorINFO(msg)
+                                    msg = f"Kwota powinna być dodatnią cyfrą. Spróbuj ponownie."
+                                    self.ErrorINFO(msg)
 
 
 
     def button2(self):
         # print('Button 2 was clicked')
         pesel= self.openDialog2()
-        # car_number = "AAH88TV"
-        # pesel = "03102968983"
-        if (len(pesel) != 11):
-            msg = "Wprowadzono nieprawidłowe dane. Spróbuj ponownie"
-            self.ErrorINFO(msg)
+        if(pesel==None):
+            return
         else:
-            data=self.lookforClientbyPesel(int(pesel))
-            if(len(data)!=1):
-                msg = "Nie ma takiego klienta w bazie. Spróbuj ponownie"
+            # car_number = "AAH88TV"
+            # pesel = "03102968983"
+            if (len(pesel) != 11):
+                msg = "Wprowadzono nieprawidłowe dane. Spróbuj ponownie"
                 self.ErrorINFO(msg)
             else:
-                saldo=data[0][4]
-                Title="Sukces"
-                msg=f"Stan konta o numerze PESEL:{pesel} wynosi {saldo}."
-                self.ErrorINFO(msg,Title)
+                data=self.lookforClientbyPesel(int(pesel))
+                if(len(data)!=1):
+                    msg = "Nie ma takiego klienta w bazie. Spróbuj ponownie"
+                    self.ErrorINFO(msg)
+                else:
+                    saldo=data[0][4]
+                    Title="Sukces"
+                    msg=f"Stan konta o numerze PESEL:{pesel} wynosi {saldo}."
+                    self.ErrorINFO(msg,Title)
 
 
     def button3(self):
         # print("Button 3 was clicked")
         kwota, pesel, opcja = self.openDialog3()
-        # car_number = "AA11111"
-        # pesel = "03102968983"
-        if (len(pesel) != 11):
-            msg = "Wprowadzono nieprawidłowe dane. Spróbuj ponownie"
-            self.ErrorINFO(msg)
+        if(kwota==None):
+            return
         else:
-            data=self.lookforClientbyPesel(int(pesel))
-            if(len(data)!=1):
-                msg = "Nie ma takiego klienta w bazie. Spróbuj ponownie"
+            # car_number = "AA11111"
+            # pesel = "03102968983"
+            if (len(pesel) != 11):
+                msg = "Wprowadzono nieprawidłowe dane. Spróbuj ponownie"
                 self.ErrorINFO(msg)
             else:
-                if(kwota.isdigit()):
-                    saldo=data[0][4]
-                    kwota=int(kwota)
-                    kwota=kwota/100
-                    total=kwota+saldo
-                    self.updateSaldo(total,pesel)
-                    Title="Sukces"
-                    msg=f"Stan konta o numerze PESEL:{pesel} po doładowaniu wynosi {total}."
-                    self.ErrorINFO(msg,Title)
-                else:
-                    msg = "Kwota doładowania musi byc liczbą dodatnią. Spróbuj ponownie."
+                data=self.lookforClientbyPesel(int(pesel))
+                if(len(data)!=1):
+                    msg = "Nie ma takiego klienta w bazie. Spróbuj ponownie"
                     self.ErrorINFO(msg)
+                else:
+                    if(kwota.isdigit()):
+                        saldo=data[0][4]
+                        kwota=int(kwota)
+                        kwota=kwota/100
+                        total=kwota+saldo
+                        self.updateSaldo(total,pesel)
+                        Title="Sukces"
+                        msg=f"Stan konta o numerze PESEL:{pesel} po doładowaniu wynosi {total}."
+                        self.ErrorINFO(msg,Title)
+                    else:
+                        msg = "Kwota doładowania musi byc liczbą dodatnią. Spróbuj ponownie."
+                        self.ErrorINFO(msg)
 
 
 
@@ -231,53 +239,64 @@ class MainWindow(QWidget):
         if ok:
             self.IDt.setText(str(text))
 
-    def openSecondDialog(self):
-        mydialog = QDialog()
-        mydialog.setModal(True)
-        mydialog.exec()
 
     def openDialog1(self):
         msg1 = "Wprowadź rejestrację"
         msg2="Wprowadź PESEL lub numer karty"
         dialog1 = InputDialog(msg1,msg2,False)
         dialog1.show()
-        if dialog1.exec():
+        output = dialog1.exec()
+        if (output):
             rejestracja, numer_identyfikacyjny = dialog1.getInputs()
-        return (rejestracja, numer_identyfikacyjny)
+            return (rejestracja, numer_identyfikacyjny)
+        else:
+            return (None,None)
 
     def openDialog12(self):
         msg1 = "Wprowadź rejestrację"
         dialog1 = InputDialog3(msg1, True)
         dialog1.show()
-        if dialog1.exec():
+        output = dialog1.exec()
+        if (output):
             rejestracja,option= dialog1.getInputs()
-        return (rejestracja, option)
+            return (rejestracja, option)
+        else:
+            return (None,None)
 
     def openDialog13(self):
         msg1 = "Wprowadź kwotę w groszach"
         dialog1 = InputDialog3(msg1, False)
         dialog1.show()
-        if dialog1.exec():
+        output=dialog1.exec()
+        if(output):
             kwota= dialog1.getInputs()
-        return kwota
+            return kwota
+        else:
+            return None
 
 
     def openDialog2(self):
         msg = "Wprowadż numer PESEL"
         dialog1 = InputDialog3(msg, False)
         dialog1.show()
-        if dialog1.exec():
+        output=dialog1.exec()
+        if (output):
             PESEL = dialog1.getInputs()
-        return PESEL
+            return PESEL
+        else:
+            return None
 
     def openDialog3(self):
         msg1 = "Wprowadź kwotę w groszach"
         msg2 = "Wprowadź PESEL"
         dialog1 = InputDialog(msg1,msg2)
         dialog1.show()
-        if dialog1.exec():
+        output=dialog1.exec()
+        if (output):
             kwota, pesel, opcja = dialog1.getInputs()
-        return (kwota, pesel, opcja)
+            return (kwota, pesel, opcja)
+        else:
+            return (None, None, None)
 
 
 
@@ -401,7 +420,7 @@ class InputDialog(QDialog):
             self.comboBox = QComboBox(self)
             self.comboBox.setGeometry(50, 50, 100, 35)
             self.comboBox.addItems(types)
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok, self);
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
 
         layout = QFormLayout(self)
         layout.addRow(msg1, self.kwota)
@@ -412,6 +431,7 @@ class InputDialog(QDialog):
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
 
     def getInputs(self):
         if(self.opt):
@@ -425,7 +445,7 @@ class InputDialog3(QDialog):
         super().__init__(parent)
         self.opt=opt
         self.setWindowTitle("Wprowadź dane")
-        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok , self);
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self);
         self.pesel = QLineEdit(self)
         if (opt):
             types = ['karta', 'gotówka']
@@ -440,6 +460,7 @@ class InputDialog3(QDialog):
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(self.accept)
+        buttonBox.rejected.connect(self.reject)
 
     def getInputs(self):
         if (self.opt):
