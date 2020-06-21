@@ -379,7 +379,6 @@ class TypeWindow(tk.Frame):
         cursor = db.cursor()
         cursor.execute(sql1, nazwa)
         result = cursor.fetchone()
-        print(result)
         db.close()
         newWindow = tk.Toplevel(self.master)
         app = TypeAddWindow(result, newWindow, self)
