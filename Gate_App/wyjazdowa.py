@@ -119,10 +119,20 @@ class MainWindow(QWidget):
                 else:
                     msg = f"Nie ma w bazie pojazdu o numerze rejestracyjnym: {rejestracja}. Spróbuj ponownie"
                     self.ErrorINFO(msg)
+
+            flag2=False
             if(flag1):
                 exit, id_pobytu = self.updatePobyt(rejestracja)
-                if(option==0):
-                    if (exit):
+                if (exit):
+                    flag2=True
+                else:
+                    msg = f"Nie udało się znaleźć niezakończonego pobytu pojazdu o rejestracji: {rejestracja}."
+                    self.ErrorINFO(msg)
+
+            if(flag1):
+                exit, id_pobytu = self.updatePobyt(rejestracja)
+                if(flag2):
+                    if(option==0):
                         naleznosc=self.getlNaleznosc(id_pobytu)
                         msg = f"Należność za usługę wynosi: {naleznosc} złotych. W celu zakończenia przyłóż kartę."
                         Title="Instrukcja"
@@ -131,33 +141,31 @@ class MainWindow(QWidget):
                         msg = f"Pobyt zakończony sukcesem. Miłego dnia."
                         self.ErrorINFO(msg, Title)
                     else:
-                        msg = f"Nie udało się znaleźć niezakończonego pobytu pojazdu o rejestracji: {rejestracja}."
-                        self.ErrorINFO(msg)
-                else:
-                    naleznosc = self.getlNaleznosc(id_pobytu)
-                    status=False
-                    while(status==False):
-                        msg = f"Należność za usługę wynosi: {naleznosc} złotych. W celu zakończenia przyłóż kartę."
+                        naleznosc = self.getlNaleznosc(id_pobytu)
+                        status=False
+
+                        msg = f"Należność za usługę wynosi: {naleznosc} złotych. W celu zakończenia wprowadź kwotę równą lub większą."
                         Title = "Instrukcja"
                         self.ErrorINFO(msg, Title)
-                        kwota=self.openDialog13()
-                        isd=kwota.isdigit()
-                        if(isd):
-                            kwota=int(kwota)/100
-                            dif=kwota-naleznosc
-                            if(dif>=0):
-                                msg=f"Wydana reszta: {dif} złotych. Miłego dnia."
-                                Title= "Sukces"
-                                self.ErrorINFO(msg,Title)
-                                status=True
+                        while (status == False):
+                            kwota=self.openDialog13()
+                            isd=kwota.isdigit()
+                            if(isd):
+                                kwota=int(kwota)/100
+                                dif=kwota-naleznosc
+                                if(dif>=0):
+                                    msg=f"Wydana reszta: {dif} złotych. Miłego dnia."
+                                    Title= "Sukces"
+                                    self.ErrorINFO(msg,Title)
+                                    status=True
+                                else:
+                                    msg=f"Brakuje jeszcze {-dif} złotych. Wprowadż tą kwotę aby zakończyć"
+                                    Title = "Sukces"
+                                    self.ErrorINFO(msg, Title)
+                                    naleznosc=-dif
                             else:
-                                msg = f"Brakuje jeszcze: {dif} złotych."
-                                Title = "Instrukcja"
-                                self.ErrorINFO(msg, Title)
-                                status=True
-                        else:
-                            msg = f"Kwota powinna być dodatnią cyfrą. Spróbuj ponownie."
-                            self.ErrorINFO(msg)
+                                msg = f"Kwota powinna być dodatnią cyfrą. Spróbuj ponownie."
+                                self.ErrorINFO(msg)
 
 
 
