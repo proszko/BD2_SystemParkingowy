@@ -289,7 +289,7 @@ class DiscountAddWindow(tk.Frame):
         if len(self.entry1.get()) > 30:
             tk.messagebox.showerror("Error", "Nazwa ulgi jest za długa")
             return
-        if float(self.entry2.get()) >= float(100.0) or float(self.entry2.get()) <= float(0.0):
+        if float(self.entry2.get()) > float(100.0) or float(self.entry2.get()) < float(0.0):
             tk.messagebox.showerror("Error", "Niepoprawna wartość zniżki (zakres 0 - 100)")
             return
         db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
