@@ -147,7 +147,7 @@ class ChooseZoneWindow(tk.Frame):
         self.combobox1 = ttk.Combobox(self, state="readonly", values=list1, width=40)
         self.combobox1.current(0)
         self.button1 = tk.Button(self, bg="green", text="OK",
-                                 command=lambda naz=self.combobox1.current() + 1: self.confirm_button_fun(naz))
+                                 command=self.confirm_button_fun)
         self.button1.grid(row=2, column=0, sticky="ew", padx=1, pady=1)
         self.button2 = tk.Button(self, bg="tomato", text="Anuluj", command=self.master.destroy)
         self.button2.grid(row=2, column=1, padx=1, pady=1)
@@ -155,8 +155,8 @@ class ChooseZoneWindow(tk.Frame):
         self.grid()
         self.master.resizable(False, False)
 
-    def confirm_button_fun(self, naz):
-        self.parent.parking_management(naz)
+    def confirm_button_fun(self):
+        self.parent.parking_management(self.combobox1.current() + 1)
         self.master.destroy()
 
 
