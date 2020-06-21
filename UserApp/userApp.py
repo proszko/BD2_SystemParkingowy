@@ -73,10 +73,9 @@ class MainWindow(tk.Frame):
         app.draw_contents()
 
     def parking_management(self):
-        # newWindow = tk.Toplevel(self.master)
-        # app = ParkingWindow(newWindow)
-        # app.draw_contents()
-        pass
+        newWindow = tk.Toplevel(self.master)
+        app = ParkingWindow(newWindow)
+        app.draw_contents()
 
     def park_zone_status(self):
         newWindow = tk.Toplevel(self.master)
@@ -988,9 +987,202 @@ class GateAddWindow(tk.Frame):
         self.master.destroy()
 
 
-# class ParkingWindow(tk.Frame):
-#    def __init__(self):
-#        pass
+class ParkingWindow(tk.Frame):
+    def __init__(self, master=None):
+        tk.Frame.__init__(self, master)
+        self.master = master
+        self.master.title("Zarządzanie miejscami parkingowymi")
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.master.geometry("470x510")
+        self.grid()
+        self.master.resizable(False, False)
+
+    def draw_contents(self):
+        canvas = tk.Canvas(self, width=450, height=500)
+        canvas.rowconfigure(0, weight=1)
+        canvas.columnconfigure(0, weight=1)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        canvasFrame = tk.Frame(canvas)
+        canvas.create_window(0, 0, window=canvasFrame, anchor='nw')
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT miejsca.kod, strefy.nazwa AS strefa, typy_pojazdów.nazwa AS typ_pojazdu \
+                FROM miejsca LEFT JOIN strefy ON miejsca.strefy_id = strefy.id \
+                LEFT JOIN typy_pojazdów ON miejsca.typy_pojazdów_id = typy_pojazdów.id \
+                ORDER BY strefy.nazwa, typy_pojazdów.nazwa, miejsca.kod;"
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            field_names = [i[0] for i in cursor.description]
+            j = 0
+            length = len(field_names)
+            for j in range(length):
+                label1 = tk.Label(canvasFrame, text=field_names[j], bg="light grey", font=(None, 7))
+                label1.grid(row=0, column=j, sticky="ew", padx=1)
+            button1 = tk.Button(canvasFrame, bg="tomato", text="Dodaj miejsce", font=(None, 7))
+            button1.grid(row=0, column=j + 1, sticky="ew", padx=1)
+            button1.configure(command=lambda fields=field_names: self.add_park(fields))
+            for idxr, row in enumerate(result):
+                idxc = 0
+                for idxc, column in enumerate(row):
+                    label1 = tk.Label(canvasFrame, text=column, font=(None, 7))
+                    label1.grid(row=idxr + 1, column=idxc, padx=1)
+                button1 = tk.Button(canvasFrame, bg="light blue", text="Edytuj miejsce", font=(None, 7))
+                button1.grid(row=idxr + 1, column=idxc + 1, sticky="ew", padx=1)
+                button1.configure(command=lambda kod=result[idxr][0], strefa=result[idxr][1], typ=result[idxr][2],
+                                                 fields=field_names: self.edit_park(kod, strefa, typ, fields))
+        except:
+            print("Error: Unable to fetch data")
+        db.close()
+        scroll = tk.Scrollbar(self, orient=tk.VERTICAL)
+        scroll.config(command=canvas.yview)
+        canvas.config(yscrollcommand=scroll.set)
+        scroll.grid(row=0, column=1, sticky="ns")
+        self.update()
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    def edit_park(self, kod, strefa, typ, field_names):
+        sql1 = "SELECT kod, strefy_id, typy_pojazdów_id FROM miejsca \
+                WHERE kod = %s AND strefy_id = (SELECT id FROM strefy WHERE nazwa = %s) \
+                AND typy_pojazdów_id = (SELECT id FROM typy_pojazdów WHERE nazwa = %s);"
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        dat = (kod, strefa, typ)
+        cursor.execute(sql1, dat)
+        result = cursor.fetchone()
+        db.close()
+        newWindow = tk.Toplevel(self.master)
+        app = ParkingAddWindow(result, newWindow, self)
+        app.draw_contents(field_names, "edit")
+
+    def add_park(self, field_names):
+        pardat = (None, None, None)
+        newWindow = tk.Toplevel(self.master)
+        app = ParkingAddWindow(pardat, newWindow, self)
+        app.draw_contents(field_names, "insert")
+
+
+class ParkingAddWindow(tk.Frame):
+    def __init__(self, ratdat, master=None, parent=None):
+        tk.Frame.__init__(self, master)
+        self.parent = parent
+        self.master = master
+        self.master.title("Wprowadź dane miejsca")
+        self.button1 = tk.Button(self)
+        self.button2 = tk.Button(self)
+        self.entry1 = tk.Entry(self)
+        if ratdat[0] is not None:
+            self.entry1.insert(0, ratdat[0])
+        self.entry1.configure(validate="key",
+                              validatecommand=(self.register(self.on_validate), "%d", "%i", "%P"))
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT nazwa FROM strefy;"
+        list1 = []
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            for column in result:
+                list1.append(column[0])
+        except:
+            print("Error: Unable to fetch data")
+        self.combobox1 = ttk.Combobox(self, state="readonly", values=list1, width=40)
+        if ratdat[1] is not None:
+            self.combobox1.current(ratdat[1] - 1)
+        else:
+            self.combobox1.current(0)
+        sql1 = "SELECT nazwa FROM typy_pojazdów;"
+        list2 = []
+        try:
+            cursor.execute(sql1)
+            result = cursor.fetchall()
+            for column in result:
+                list2.append(column[0])
+        except:
+            print("Error: Unable to fetch data")
+        self.combobox2 = ttk.Combobox(self, state="readonly", values=list2, width=40)
+        if ratdat[2] is not None:
+            self.combobox2.current(ratdat[2] - 1)
+        else:
+            self.combobox2.current(0)
+        db.close()
+        self.grid()
+        self.master.resizable(False, False)
+
+    def on_validate(self, why, where, what):
+        if why == '1':
+            if int(where) < 5:
+                if not what.isalnum():
+                    return False
+            else:
+                return False
+        return True
+
+    def draw_contents(self, field_names, flag):
+        length = len(field_names)
+        j = 0
+        for j in range(length):
+            label1 = tk.Label(self, text=field_names[j])
+            label1.grid(row=j, column=0, sticky="ew", padx=1, pady=1)
+        label1 = tk.Label(self)
+        label1.grid(row=j + 1, column=0, padx=1, pady=1)
+        label1.grid(row=j + 1, column=1, padx=1, pady=1)
+        self.button1 = tk.Button(self, bg="green", text="OK",
+                                 command=lambda kod=self.entry1.get(), strefa=self.combobox1.current() + 1,
+                                                typ=self.combobox2.current() + 1, flaga=flag: self.confirm_button_fun(
+                                     kod, strefa, typ, flaga))
+        self.button1.grid(row=j + 2, column=0, sticky="ew", padx=1, pady=1)
+        self.button2 = tk.Button(self, bg="tomato", text="Anuluj", command=self.master.destroy)
+        self.button2.grid(row=j + 2, column=1, padx=1, pady=1)
+        self.entry1.grid(row=0, column=1, sticky="ew", padx=1, pady=1)
+        self.combobox1.grid(row=1, column=1, sticky="ew", padx=1, pady=1)
+        self.combobox2.grid(row=2, column=1, sticky="ew", padx=1, pady=1)
+
+    def confirm_button_fun(self, kod0, stref0, typ0, flaga):
+        if self.entry1.get() == "":
+            tk.messagebox.showerror("Error", "Pole kod musi być wypełnione")
+            return
+        if len(self.entry1.get()) > 5:
+            tk.messagebox.showerror("Error", "Podany kod jest za długi")
+            return
+        db = MySQLdb.connect("localhost", "root", "BD2projekt!", "bd2_schema")
+        cursor = db.cursor()
+        sql1 = "SELECT kod, strefy_id, typy_pojazdów_id FROM miejsca \
+                WHERE kod = %s AND strefy_id = %s AND typy_pojazdów_id = %s;"
+        dat = (self.entry1.get(), self.combobox1.current() + 1, self.combobox2.current() + 1)
+        cursor.execute(sql1, dat)
+        count = cursor.rowcount
+        val = cursor.fetchone()
+        if count != 0:
+            if flaga == "insert":
+                tk.messagebox.showerror("Error", "Istnieje już miejsce dla podanych danych")
+                db.close()
+                return
+            if flaga == "edit":
+                if not (val[0] == kod0 and val[1] == stref0 and val[2] == typ0):
+                    tk.messagebox.showerror("Error", "Istnieje już miejsce dla podanych danych")
+                    db.close()
+                    return
+        sql1 = "INSERT INTO miejsca (kod, strefy_id, typy_pojazdów_id) VALUES (%s, %s, %s);"
+        sql2 = "UPDATE miejsca SET kod = %s, strefy_id = %s, typy_pojazdów_id = %s \
+                WHERE kod = %s AND strefy_id = %s AND typy_pojazdów_id = %s;"
+        s1 = self.entry1.get()
+        i1 = self.combobox1.current() + 1
+        i2 = self.combobox2.current() + 1
+        record = (s1, i1, i2)
+        update = (s1, i1, i2, kod0, stref0, typ0)
+        try:
+            if flaga == "insert":
+                cursor.execute(sql1, record)
+            elif flaga == "edit":
+                cursor.execute(sql2, update)
+        except:
+            print("Error: Unable to insert data")
+        db.commit()
+        db.close()
+        self.parent.draw_contents()
+        self.master.destroy()
 
 
 class AccountWindow(tk.Frame):
