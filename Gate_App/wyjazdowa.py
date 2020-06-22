@@ -132,7 +132,6 @@ class MainWindow(QWidget):
                         self.ErrorINFO(msg)
 
                 if(flag1):
-                    exit, id_pobytu = self.updatePobyt(rejestracja)
                     if(flag2):
                         if(option==0):
                             naleznosc=self.getlNaleznosc(id_pobytu)
