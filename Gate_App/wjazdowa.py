@@ -246,11 +246,16 @@ class MainWindow(QWidget):
                     msg="Nie podano dostatecznej nazwy modelu. Spróbuj ponownie."
                     self.ErrorINFO(msg)
                 else:
-                    status=True
-                    self.addPojazd(rejestracja,pojazd_id,model)
-                    Title="Sukces"
-                    msg="Pomyślnie dodano pojazd. Proszę ponownie spróbować zarejestrować wjazd."
-                    self.ErrorINFO(msg,Title)
+                    output=self.lookforClientbyCar(rejestracja)
+                    if(output[0]==None):
+                        status=True
+                        self.addPojazd(rejestracja,pojazd_id,model)
+                        Title="Sukces"
+                        msg="Pomyślnie dodano pojazd. Proszę ponownie spróbować zarejestrować wjazd."
+                        self.ErrorINFO(msg,Title)
+                    else:
+                        msg = "W bazie już istnieje pojazd z tym numerem rejestracyjnym."
+                        self.ErrorINFO(msg)
 
     def lookforClientbyCard(self, card_number):
         db = MySQLdb.connect("localhost", "root", "wpisz_haslo", "database_test")
