@@ -77,8 +77,11 @@ class MainWindow(QWidget):
                         else:
                             if(flag1):
                                 exit, id_pobytu=self.updatePobyt(rejestracja)
+                                saldo1=data[0][4]
+                                naleznosc = self.getlNaleznosc(id_pobytu)
+                                saldo=saldo1-naleznosc
+                                self.updateSaldo(saldo,numer)
                                 if(exit):
-                                    saldo = data[0][4]
                                     Title = "Sukces"
                                     msg = f"Pobyt zakończony sukcesem. Stan twojego konta wynosi {saldo}."
                                     self.ErrorINFO(msg, Title)
@@ -95,8 +98,12 @@ class MainWindow(QWidget):
                         else:
                             if (flag1):
                                 exit, id_pobytu = self.updatePobyt(rejestracja)
+                                saldo1 = data[0][4]
+                                pesel=data[0][3]
+                                naleznosc = self.getlNaleznosc(id_pobytu)
+                                saldo = saldo1 - naleznosc
+                                self.updateSaldo(saldo,pesel)
                                 if (exit):
-                                    saldo = data[0][4]
                                     Title = "Sukces"
                                     msg = f"Pobyt zakończony sukcesem. Stan twojego konta wynosi {saldo}."
                                     self.ErrorINFO(msg, Title)
@@ -154,6 +161,7 @@ class MainWindow(QWidget):
                                 if(isd):
                                     kwota=int(kwota)/100
                                     dif=kwota-naleznosc
+                                    dif = round(dif, 2)
                                     if(dif>=0):
                                         msg=f"Wydana reszta: {dif} złotych. Miłego dnia."
                                         Title= "Sukces"
@@ -264,14 +272,13 @@ class MainWindow(QWidget):
 
     def openDialog13(self):
         msg1 = "Wprowadź kwotę w groszach"
-        dialog1 = InputDialog3(msg1, False)
+        dialog1 = InputDialog4(msg1, False)
         dialog1.show()
         output=dialog1.exec()
         if(output):
             kwota= dialog1.getInputs()
-            return kwota
-        else:
-            return None
+        return kwota
+        
 
 
     def openDialog2(self):
@@ -406,6 +413,9 @@ class MainWindow(QWidget):
         db.close()
         return data[0]
 
+    def zaktualizujMonety(self,reszta):
+        pass
+
 
 class InputDialog(QDialog):
     def __init__(self, msg1,msg2,opt=True, parent=None):
@@ -467,6 +477,33 @@ class InputDialog3(QDialog):
         else:
             return self.pesel.text()
 
+class InputDialog4(QDialog):
+    def __init__(self, msg2, opt=False, parent=None):
+        super().__init__(parent)
+        self.opt = opt
+        self.setWindowTitle("Wprowadź dane")
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok , self);
+        self.pesel = QLineEdit(self)
+        if (opt):
+            types = ['karta', 'gotówka']
+            self.comboBox = QComboBox(self)
+            self.comboBox.setGeometry(50, 50, 100, 35)
+            self.comboBox.addItems(types)
+
+        layout = QFormLayout(self)
+        layout.addRow(msg2, self.pesel)
+        if (opt):
+            layout.addRow("Wybierz opcję ", self.comboBox)
+        layout.addWidget(buttonBox)
+
+        buttonBox.accepted.connect(self.accept)
+
+    def getInputs(self):
+        if (self.opt):
+            return (self.pesel.text(), self.comboBox.currentIndex())
+        else:
+            return self.pesel.text()
+
 
 if __name__ == "__main__":
 
@@ -474,3 +511,4 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
+
