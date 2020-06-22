@@ -79,7 +79,7 @@ class MainWindow(QWidget):
                                 exit, id_pobytu=self.updatePobyt(rejestracja)
                                 saldo1=data[0][4]
                                 naleznosc = self.getlNaleznosc(id_pobytu)
-                                saldo=saldo1-naleznosc
+                                saldo=round(saldo1-naleznosc,2)
                                 self.updateSaldo(saldo,numer)
                                 if(exit):
                                     Title = "Sukces"
@@ -101,7 +101,7 @@ class MainWindow(QWidget):
                                 saldo1 = data[0][4]
                                 pesel=data[0][3]
                                 naleznosc = self.getlNaleznosc(id_pobytu)
-                                saldo = saldo1 - naleznosc
+                               saldo=round(saldo1-naleznosc,2)
                                 self.updateSaldo(saldo,pesel)
                                 if (exit):
                                     Title = "Sukces"
